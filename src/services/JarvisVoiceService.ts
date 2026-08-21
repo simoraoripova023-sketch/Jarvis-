@@ -7,6 +7,7 @@ import { JarvisAIService } from './JarvisAIService';
 import { voiceBiometrics } from './VoiceBiometricsService';
 import { notesPlannerService } from './NotesPlannerService';
 import { userProfileService } from './UserProfileService';
+import { NeuralVoiceCloneService } from './NeuralVoiceCloneService';
 import { SystemThemeMode } from '../types/neural';
 
 export interface JarvisCommandActions {
@@ -249,9 +250,12 @@ class JarvisVoiceService {
     try {
       window.speechSynthesis.cancel();
 
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 1.02;
-      utterance.pitch = 0.95;
+      const phoneticText = NeuralVoiceCloneService.cleanUzbekPhonetics(text);
+      const utterance = new SpeechSynthesisUtterance(phoneticText);
+
+      // Calibrated to "Aqlli Yusuf" Acoustic Profile (96.4 Hz Warm Storyteller Baritone)
+      utterance.rate = 0.94; // Calm, respectful storytelling cadence
+      utterance.pitch = 0.82; // Deep, rich baritone fundamental frequency (~96 Hz)
 
       const voices = window.speechSynthesis.getVoices();
       const isUz = this.currentLanguage === 'uz' || JarvisAIService.isUzbekText(text);
@@ -261,11 +265,10 @@ class JarvisVoiceService {
       if (isUz) {
         selectedVoice = voices.find(
           (v) =>
-            v.lang.startsWith('uz') ||
-            v.lang.startsWith('tr') ||
-            v.lang.startsWith('ru') ||
-            v.name.includes('David') ||
-            v.name.includes('Google')
+            (v.lang.startsWith('uz') || v.lang.startsWith('tr') || v.lang.startsWith('ru')) &&
+            (v.name.includes('Male') || v.name.includes('David') || v.name.includes('Google') || v.name.includes('Sardor'))
+        ) || voices.find(
+          (v) => v.name.includes('UK English Male') || v.name.includes('David') || v.name.includes('George') || v.name.includes('Male')
         );
       } else {
         selectedVoice = voices.find(
