@@ -114,32 +114,25 @@ export const JarvisVoiceAssistant: React.FC<JarvisVoiceAssistantProps> = ({
   };
 
   const quickPromptsUz = [
+    'Telegramni och',
     'Salom Jarvis',
-    'Mening ismim Shohruh',
-    'Ismim nima?',
+    'Skrinshot ol',
+    'Kalkulyatorni och',
     'Rejalarim',
-    'Qayd yoz: Uchrashuv',
-    'Yuzni tani',
     'YouTube ni och',
-    'Bugungi hisobot',
     'Batareya qancha?',
-    'Python nima?',
-    'Jangovar rejim',
     'Musiqa qo\'y',
     'Soat necha?'
   ];
 
   const quickPromptsEn = [
+    'Open Telegram',
     'Hello Jarvis',
-    'My name is Tony',
-    'What is my name?',
+    'Take Screenshot',
+    'Open Calculator',
     'Show Tasks',
-    'Add Note: Meeting',
-    'Scan Face',
     'Open YouTube',
-    'Daily Briefing',
     'Check Battery',
-    'Combat Mode',
     'Play Ambient',
     'What time is it'
   ];

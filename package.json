@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "desktop": "node desktop-bridge/server.cjs",
     "build": "tsc && vite build",
     "preview": "vite preview"
   },

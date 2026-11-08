@@ -31,6 +31,7 @@ import { timerService } from '../../services/TimerService';
 import { musicPlayer } from '../../services/MusicPlayerService';
 import { voiceBiometrics, VoiceBiometricData } from '../../services/VoiceBiometricsService';
 import { notesPlannerService } from '../../services/NotesPlannerService';
+import { desktopBridge, DesktopTelemetry } from '../../services/DesktopBridgeService';
 
 interface HUDContainerProps {
   systemStatus: SystemStatus;
@@ -72,6 +73,8 @@ export const HUDContainer: React.FC<HUDContainerProps> = ({
   const [tracks, setTracks] = useState<MusicTrack[]>(musicPlayer.getTracks());
   const [voiceBio, setVoiceBio] = useState<VoiceBiometricData>(voiceBiometrics.getData());
   const [isMobilePanelOpen, setIsMobilePanelOpen] = useState(false);
+  const [desktopTelemetry, setDesktopTelemetry] = useState<DesktopTelemetry | null>(desktopBridge.getTelemetry());
+  const [isDesktopConnected, setIsDesktopConnected] = useState<boolean>(desktopBridge.getIsConnected());
 
   useEffect(() => {
     const unsubBatt = batteryService.subscribe(setBattery);
@@ -82,6 +85,10 @@ export const HUDContainer: React.FC<HUDContainerProps> = ({
       setIsMusicPlaying(p);
     });
     const unsubBio = voiceBiometrics.subscribe(setVoiceBio);
+    const unsubDesktop = desktopBridge.subscribe((tel, conn) => {
+      setDesktopTelemetry(tel);
+      setIsDesktopConnected(conn);
+    });
 
     return () => {
       unsubBatt();
@@ -89,6 +96,7 @@ export const HUDContainer: React.FC<HUDContainerProps> = ({
       unsubTimers();
       unsubMusic();
       unsubBio();
+      unsubDesktop();
     };
   }, []);
 
@@ -167,7 +175,7 @@ export const HUDContainer: React.FC<HUDContainerProps> = ({
 
             <div className="space-y-2 text-xs font-mono">
               <div className="flex justify-between items-center text-[#73EEFF]/80">
-                <span>SYNAPTIC LOAD</span>
+                <span>{desktopTelemetry ? 'REAL CPU LOAD' : 'SYNAPTIC LOAD'}</span>
                 <span
                   className={`font-bold ${
                     themeMode === 'COMBAT'
@@ -179,7 +187,7 @@ export const HUDContainer: React.FC<HUDContainerProps> = ({
                       : 'text-[#00D9FF]'
                   }`}
                 >
-                  {systemStatus.synapticLoad.toFixed(1)}%
+                  {desktopTelemetry ? `${desktopTelemetry.cpuUsage}%` : `${systemStatus.synapticLoad.toFixed(1)}%`}
                 </span>
               </div>
               <div className="w-full bg-[#03070D] h-1 rounded-full overflow-hidden border border-[#00D9FF]/20">
@@ -193,8 +201,19 @@ export const HUDContainer: React.FC<HUDContainerProps> = ({
                       ? 'bg-[#FFB84D]'
                       : 'bg-[#00D9FF]'
                   }`}
-                  style={{ width: `${systemStatus.synapticLoad}%` }}
+                  style={{ width: `${desktopTelemetry ? desktopTelemetry.cpuUsage : systemStatus.synapticLoad}%` }}
                 />
+              </div>
+
+              {/* Native Windows Desktop Link Indicator */}
+              <div className="flex justify-between items-center text-[#73EEFF]/90 pt-1 border-t border-[#00D9FF]/10 text-[10px]">
+                <div className="flex items-center space-x-1.5">
+                  <span className={`w-2 h-2 rounded-full ${isDesktopConnected ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
+                  <span className="font-bold">DESKTOP LINK:</span>
+                </div>
+                <span className={isDesktopConnected ? 'text-emerald-300 font-bold' : 'text-amber-300'}>
+                  {isDesktopConnected ? `ONLINE (${desktopTelemetry?.hostname || 'PC'})` : 'STANDBY'}
+                </span>
               </div>
 
               {/* Laptop Battery & Power Status */}

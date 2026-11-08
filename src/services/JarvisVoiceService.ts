@@ -8,6 +8,7 @@ import { voiceBiometrics } from './VoiceBiometricsService';
 import { notesPlannerService } from './NotesPlannerService';
 import { userProfileService } from './UserProfileService';
 import { NeuralVoiceCloneService } from './NeuralVoiceCloneService';
+import { desktopBridge } from './DesktopBridgeService';
 import { SystemThemeMode } from '../types/neural';
 
 export interface JarvisCommandActions {
@@ -390,7 +391,68 @@ class JarvisVoiceService {
       input.includes('yutube') ||
       input.includes('utube');
 
-    if (isYouTubeSearch) {
+    if (
+      input.includes('telegram') ||
+      input.includes('telegrem') ||
+      input.includes('telefram') ||
+      input === 'tg'
+    ) {
+      actionTaken = 'OPEN_TELEGRAM';
+      desktopBridge.openApp('telegram');
+      reply = isUz
+        ? `Telegram ishga tushirildi, ${honorific}.`
+        : `Launching Telegram on your desktop now, ${honorific}.`;
+    } else if (
+      input.includes('kalkulyator') ||
+      input.includes('calculator') ||
+      input.includes('hisoblagich')
+    ) {
+      actionTaken = 'OPEN_CALCULATOR';
+      desktopBridge.openApp('calc');
+      reply = isUz ? `Kalkulyator ochildi, ${honorific}.` : `Calculator launched, ${honorific}.`;
+    } else if (
+      input.includes('bloknot') ||
+      input.includes('notepad')
+    ) {
+      actionTaken = 'OPEN_NOTEPAD';
+      desktopBridge.openApp('notepad');
+      reply = isUz ? `Bloknot ochildi, ${honorific}.` : `Notepad launched, ${honorific}.`;
+    } else if (
+      input.includes('vs code') ||
+      input.includes('vscode') ||
+      input.includes('kod muharrir')
+    ) {
+      actionTaken = 'OPEN_VSCODE';
+      desktopBridge.openApp('vscode');
+      reply = isUz ? `Visual Studio Code ishga tushirildi, ${honorific}.` : `Launching VS Code, ${honorific}.`;
+    } else if (
+      input.includes('skrinshot') ||
+      input.includes('screenshot') ||
+      input.includes('ekranni rasmga')
+    ) {
+      actionTaken = 'SCREENSHOT';
+      desktopBridge.takeScreenshot();
+      reply = isUz
+        ? `Ekran skrinshot qilindi va Ish stoliga saqlandi, ${honorific}.`
+        : `Screenshot captured and saved to Desktop, ${honorific}.`;
+    } else if (
+      input.includes('kompyuterni qulfla') ||
+      input.includes('ekranni qulfla') ||
+      input.includes('kompyuterni blokla') ||
+      input.includes('lock pc')
+    ) {
+      actionTaken = 'LOCK_PC';
+      desktopBridge.lockPC();
+      reply = isUz ? `Tizim qulflanmoqda, ${honorific}.` : `Locking workstation, ${honorific}.`;
+    } else if (
+      input.includes('desktop') ||
+      input.includes('ish stoli') ||
+      input.includes('papkani och')
+    ) {
+      actionTaken = 'OPEN_DESKTOP';
+      desktopBridge.openFolder();
+      reply = isUz ? `Ish stoli papkasi ochildi, ${honorific}.` : `Desktop folder opened, ${honorific}.`;
+    } else if (isYouTubeSearch) {
       let query = input
         .replace(/jarvis/gi, '')
         .replace(/open/gi, '')
