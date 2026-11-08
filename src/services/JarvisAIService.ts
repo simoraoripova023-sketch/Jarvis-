@@ -1,19 +1,15 @@
-// Advanced JARVIS AI Intelligence Engine powered by Google Gemini 3.6 Flash
+// Advanced JARVIS AI Intelligence Engine powered by Google Gemini / Neural Stream
 // with User Memory, Face Biometrics & Dynamic Honorifics
 
 import { voiceBiometrics } from './VoiceBiometricsService';
 import { userProfileService } from './UserProfileService';
 
-// Default key is safely decoded from base64 chunks or read from Vite environment
 const getGeminiKey = (): string => {
   const meta = import.meta as any;
   if (meta && meta.env && meta.env.VITE_GEMINI_API_KEY) {
-    return meta.env.VITE_GEMINI_API_KEY;
+    return meta.env.VITE_GEMINI_API_KEY.trim();
   }
-  // Safe runtime fallback
-  const p1 = "AQ.Ab8RN6Kf9ohecFa";
-  const p2 = "DbWzMzcW5C63iUClcKyXQwAfiEtFRwXW6sw";
-  return `${p1}${p2}`;
+  return '';
 };
 
 export class JarvisAIService {
@@ -24,7 +20,7 @@ export class JarvisAIService {
       'tushuntir', 'ayt', 'haqida', 'gapir', 'rahmat', 'xayrli', 'tong', 'kech',
       'ob-havo', 'quvvat', 'soat', 'ishla', 'kerak', 'qil', 'dasturlash', 'til',
       'qalesan', 'ahvol', 'maslahat', 'fakt', 'musiqa', 'toshkent', 'suniy', 'kvant', 'qora',
-      'yordam', 'yoz', 'kimsan', 'nimasab'
+      'yordam', 'yoz', 'kimsan', 'nimasab', 'ishlar'
     ];
     return uzbekKeywords.some((k) => lower.includes(k));
   }
@@ -38,61 +34,61 @@ export class JarvisAIService {
     const honorific = userName ? `${userName} ${baseHonorific}` : baseHonorific;
     const isUz = lang === 'uz' || this.isUzbekText(query);
 
-    const systemInstructionUz = `Siz Tony Starkning afsonaviy J.A.R.V.I.S. (Just A Rather Very Intelligent System) sun'iy intellektisiz. Foydalanuvchiga hurmat bilan '${honorific}' deb murojaat qilasiz. Javoblaringiz sof o'zbek adabiy tilida, o'ta aqlli, professional, aniq, qiziqarli va lo'nda bo'lsin (2-4 ta jumlada). Hech qachon bot ekanligingizni oshkor qilmang, o'zingizni haqiqiy golografik JARVIS deb tuting.`;
-    const systemInstructionEn = `You are J.A.R.V.I.S., the legendary futuristic holographic AI assistant created for Tony Stark. Address the user respectfully as '${honorific}'. Provide highly intelligent, articulate, clear, and comprehensive answers in 2-4 concise sentences.`;
+    const systemInstructionUz = `Siz Tony Starkning afsonaviy J.A.R.V.I.S. (Just A Rather Very Intelligent System) sun'iy intellektisiz. Foydalanuvchiga hurmat bilan '${honorific}' deb murojaat qilasiz. Javoblaringiz sof o'zbek adabiy tilida, o'ta aqlli, professional, aniq, qiziqarli va lo'nda bo'lsin (2-4 ta jumlada). Hech qachon bot ekanligingizni oshkor qilmang, o'zingizni haqiqiy golografik JARVIS deb tuting. Qalin shrift yoki yulduzcha (*) ishlatmang.`;
+    const systemInstructionEn = `You are J.A.R.V.I.S., the legendary futuristic holographic AI assistant created for Tony Stark. Address the user respectfully as '${honorific}'. Provide highly intelligent, articulate, clear, and comprehensive answers in 2-4 concise sentences. Do not use asterisks or markdown styling.`;
 
-    // 1. PRIMARY: Google Gemini 3.6 / 2.5 Flash Neural Engine
-    try {
-      const apiKey = getGeminiKey();
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 7000);
+    // 1. PRIMARY: Google Gemini 2.0 / 1.5 Flash Neural Engine (if API key provided)
+    const apiKey = getGeminiKey();
+    if (apiKey) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 6500);
 
-      const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
-      
-      const payload = {
-        systemInstruction: {
-          parts: [{ text: isUz ? systemInstructionUz : systemInstructionEn }]
-        },
-        contents: [
-          {
-            parts: [{ text: query }]
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+        
+        const payload = {
+          systemInstruction: {
+            parts: [{ text: isUz ? systemInstructionUz : systemInstructionEn }]
+          },
+          contents: [
+            {
+              parts: [{ text: query }]
+            }
+          ],
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 350
           }
-        ],
-        generationConfig: {
-          temperature: 0.7,
-          maxOutputTokens: 350
+        };
+
+        const response = await fetch(geminiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+          signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        if (response.ok) {
+          const data = await response.json();
+          const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (text && text.trim().length > 3) {
+            return text.replace(/[*_#`]/g, '').trim();
+          }
         }
-      };
-
-      const response = await fetch(geminiUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-        signal: controller.signal
-      });
-
-      clearTimeout(timeoutId);
-
-      if (response.ok) {
-        const data = await response.json();
-        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (text && text.trim().length > 3) {
-          // Remove Markdown asterisks for smoother speech synthesis
-          return text.replace(/[*_#`]/g, '').trim();
-        }
+      } catch (e) {
+        console.warn('Gemini 2.0 Flash fallback to secondary engine', e);
       }
-    } catch (e) {
-      console.warn('Gemini 3.6 Flash fallback to secondary engine', e);
     }
 
     // 2. SECONDARY: High-Speed Pollinations Neural Stream
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 4500);
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
 
-      const url = `https://text.pollinations.ai/${encodeURIComponent(query)}?system=${encodeURIComponent(
-        isUz ? systemInstructionUz : systemInstructionEn
-      )}&model=openai`;
+      const promptText = `${isUz ? systemInstructionUz : systemInstructionEn}\n\nFoydalanuvchi so'rovi: ${query}`;
+      const url = `https://text.pollinations.ai/${encodeURIComponent(promptText)}?model=openai`;
       const response = await fetch(url, { signal: controller.signal });
       clearTimeout(timeoutId);
 

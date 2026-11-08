@@ -2,7 +2,6 @@
 // Calibrated to the exact acoustic profile of "Aqlli Yusuf" (96.4 Hz Deep Warm Storyteller Baritone)
 
 export class NeuralVoiceCloneService {
-  private static audioCache = new Map<string, string>();
   private static currentAudio: HTMLAudioElement | null = null;
 
   // 1. Phonetic Text Optimization for natural Uzbek speech synthesis
@@ -12,6 +11,8 @@ export class NeuralVoiceCloneService {
       .replace(/g['‘`ʻ]/g, 'g')
       .replace(/O['‘`ʻ]/g, 'O')
       .replace(/G['‘`ʻ]/g, 'G')
+      .replace(/sh/gi, 'sh')
+      .replace(/ch/gi, 'ch')
       .replace(/J\.A\.R\.V\.I\.S\./gi, 'Jarvis')
       .replace(/AI/g, 'Ey Ay')
       .replace(/TB\/s/g, 'terabayt sekundiga')
@@ -20,11 +21,12 @@ export class NeuralVoiceCloneService {
       .replace(/%/g, ' foiz')
       .replace(/°C/g, ' gradus')
       .replace(/[—–]/g, ', ')
+      .replace(/[*_#`]/g, '')
       .replace(/\s+/g, ' ')
       .trim();
   }
 
-  // 2. High-Fidelity Neural Speech Stream (Clone Profile)
+  // 2. High-Fidelity Speech Stream (supports Uzbek & English)
   public static async synthesizeNeuralVoice(
     text: string,
     lang: 'uz' | 'en' = 'uz'
@@ -33,15 +35,15 @@ export class NeuralVoiceCloneService {
     if (!cleanedText) return null;
 
     try {
-      // Use edge neural stream if available
-      const voiceName = lang === 'uz' ? 'uz-UZ-SardorNeural' : 'en-US-GuyNeural';
       const encodedText = encodeURIComponent(cleanedText);
-      
-      // High-speed neural speech synthesis URL
-      const streamUrl = `https://api.streamelements.com/kappa/v2/speech?voice=Brian&text=${encodedText}`;
+      // For English, Brian or Guy voice provides authentic Jarvis tone
+      // For Uzbek, Google Translate TTS endpoint provides clean natural Uzbek pronunciation
+      const streamUrl = lang === 'uz'
+        ? `https://translate.google.com/translate_tts?ie=UTF-8&tl=uz&client=tw-ob&q=${encodedText}`
+        : `https://api.streamelements.com/kappa/v2/speech?voice=Brian&text=${encodedText}`;
 
       const audio = new Audio(streamUrl);
-      audio.playbackRate = 0.96; // Matching the calm 96.4 Hz storytelling pacing of Yusuf
+      audio.playbackRate = 1.0;
       return audio;
     } catch {
       return null;

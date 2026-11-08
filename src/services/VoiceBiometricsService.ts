@@ -31,13 +31,17 @@ class VoiceBiometricsService {
   private pitchHistory: number[] = [];
   private listeners: ((data: VoiceBiometricData) => void)[] = [];
 
+  private isInitializing: boolean = false;
+
   constructor() {
-    this.initMicrophoneAnalyser();
+    // Lazily initialized on user interaction to comply with browser autoplay & permission policies
   }
 
   public async initMicrophoneAnalyser() {
+    if (this.audioCtx || this.isInitializing) return;
     if (typeof window === 'undefined' || !navigator.mediaDevices?.getUserMedia) return;
 
+    this.isInitializing = true;
     try {
       this.micStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
       const AudioCtxClass = window.AudioContext || (window as any).webkitAudioContext;
@@ -51,7 +55,9 @@ class VoiceBiometricsService {
       source.connect(this.analyser);
       this.startPitchDetectionLoop();
     } catch {
-      // Graceful fallback if mic permission not yet granted
+      // Graceful fallback if mic permission not yet granted or denied
+    } finally {
+      this.isInitializing = false;
     }
   }
 

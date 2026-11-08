@@ -200,6 +200,7 @@ class JarvisVoiceService {
       return false;
     } else {
       try {
+        voiceBiometrics.initMicrophoneAnalyser();
         this.isListening = true;
         this.recognition.lang = this.currentLanguage === 'uz' ? 'uz-UZ' : 'en-US';
         this.recognition.start();
@@ -217,6 +218,7 @@ class JarvisVoiceService {
   public startListening() {
     if (this.isSupported && this.recognition && !this.isListening) {
       try {
+        voiceBiometrics.initMicrophoneAnalyser();
         this.isListening = true;
         this.recognition.lang = this.currentLanguage === 'uz' ? 'uz-UZ' : 'en-US';
         this.recognition.start();

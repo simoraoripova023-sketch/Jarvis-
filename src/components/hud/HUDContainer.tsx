@@ -71,6 +71,7 @@ export const HUDContainer: React.FC<HUDContainerProps> = ({
   const [isMusicPlaying, setIsMusicPlaying] = useState<boolean>(musicPlayer.getIsPlaying());
   const [tracks, setTracks] = useState<MusicTrack[]>(musicPlayer.getTracks());
   const [voiceBio, setVoiceBio] = useState<VoiceBiometricData>(voiceBiometrics.getData());
+  const [isMobilePanelOpen, setIsMobilePanelOpen] = useState(false);
 
   useEffect(() => {
     const unsubBatt = batteryService.subscribe(setBattery);
@@ -106,16 +107,25 @@ export const HUDContainer: React.FC<HUDContainerProps> = ({
   const currentPlayingTrack = tracks.find((t) => t.isPlaying) || tracks[0];
 
   return (
-    <div className="absolute inset-0 pointer-events-none flex flex-col justify-between p-4 md:p-6 overflow-hidden">
+    <div className="absolute inset-0 pointer-events-none flex flex-col justify-between p-2 sm:p-4 md:p-6 overflow-hidden">
       {/* 1. TOP BAR — HEADER STATUS & TELEMETRY */}
-      <div className="w-full flex flex-wrap items-start justify-between gap-4">
+      <div className="w-full flex items-start justify-between gap-2 sm:gap-4">
         {/* TOP LEFT: SYSTEM & TELEMETRY PANELS */}
-        <div className="flex flex-col space-y-2.5">
+        <div className="flex flex-col space-y-2 max-w-[280px]">
+          {/* Mobile Collapse Toggle Button */}
+          <button
+            onClick={() => setIsMobilePanelOpen(!isMobilePanelOpen)}
+            className="md:hidden cyber-panel px-2.5 py-1 rounded text-[11px] font-mono font-bold flex items-center space-x-1.5 pointer-events-auto text-[#00D9FF] bg-[#071525]/90 border border-[#00D9FF]/40 shadow-sm"
+          >
+            <Cpu className="w-3.5 h-3.5 animate-pulse text-[#00D9FF]" />
+            <span>JARVIS STATUS {isMobilePanelOpen ? '▲' : '▼'}</span>
+          </button>
+
           {/* Main Core Telemetry Panel */}
           <div
-            className={`cyber-panel p-3.5 rounded-sm min-w-[250px] pointer-events-auto transition-all duration-300 ${getThemeColorClass()} ${
+            className={`cyber-panel p-3 rounded-sm min-w-[230px] sm:min-w-[250px] pointer-events-auto transition-all duration-300 ${getThemeColorClass()} ${
               isHudVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'
-            }`}
+            } ${!isMobilePanelOpen ? 'hidden md:block' : 'block'}`}
           >
             <div className="flex items-center justify-between border-b border-[#00D9FF]/20 pb-2 mb-2.5">
               <div className="flex items-center space-x-2">
@@ -282,9 +292,9 @@ export const HUDContainer: React.FC<HUDContainerProps> = ({
         </div>
 
         {/* TOP RIGHT: CONTROLS, THEMES & NETWORK PANEL */}
-        <div className="flex items-start space-x-3 pointer-events-auto">
+        <div className="flex items-start space-x-2 sm:space-x-3 pointer-events-auto">
           {/* Action & Theme Controls (Always accessible) */}
-          <div className="flex flex-col space-y-2">
+          <div className="grid grid-cols-2 sm:flex sm:flex-col gap-1 sm:gap-2">
             {/* Fullscreen Toggle */}
             <button
               onClick={onToggleFullscreen}
@@ -385,7 +395,7 @@ export const HUDContainer: React.FC<HUDContainerProps> = ({
           </div>
 
           {/* Network Telemetry Card & Mini Music Player */}
-          <div className="flex flex-col space-y-2">
+          <div className="hidden sm:flex flex-col space-y-2">
             <div
               className={`cyber-panel p-3.5 rounded-sm min-w-[220px] transition-all duration-300 ${getThemeColorClass()} ${
                 isHudVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'
