@@ -60,22 +60,40 @@ export class JarvisAIService {
       const data = await res.json();
 
       if (data?.query?.search && data.query.search.length > 0) {
-        const topTitle = data.query.search[0].title;
+        const topItem = data.query.search[0];
+        const topTitle = topItem.title;
         const summaryUrl = `https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(topTitle)}`;
-        const summaryRes = await fetch(summaryUrl);
+        
+        try {
+          const summaryRes = await fetch(summaryUrl);
+          if (summaryRes.ok) {
+            const summary = await summaryRes.json();
+            if (summary.extract && summary.extract.length > 25) {
+              let text = summary.extract
+                .replace(/\([^)]*\)/g, '')
+                .replace(/\[\d+\]/g, '')
+                .replace(/\s+/g, ' ')
+                .trim();
 
-        if (summaryRes.ok) {
-          const summary = await summaryRes.json();
-          if (summary.extract && summary.extract.length > 25) {
-            let text = summary.extract
-              .replace(/\([^)]*\)/g, '')
-              .replace(/\[\d+\]/g, '')
-              .replace(/\s+/g, ' ')
-              .trim();
+              const sentences = text.split(/(?<=[.!?])\s+/);
+              const concise = sentences.slice(0, 3).join(' ');
+              return `${concise}, ${honorific}.`;
+            }
+          }
+        } catch {
+          // fallback to snippet below
+        }
 
-            const sentences = text.split(/(?<=[.!?])\s+/);
-            const concise = sentences.slice(0, 3).join(' ');
-            return `${concise}, ${honorific}.`;
+        // High reliability fallback: use Wikipedia snippet from search
+        if (topItem.snippet) {
+          const cleanSnippet = topItem.snippet
+            .replace(/<[^>]*>/g, '') // remove HTML tags
+            .replace(/&quot;/g, '"')
+            .replace(/&amp;/g, '&')
+            .replace(/\s+/g, ' ')
+            .trim();
+          if (cleanSnippet.length > 20) {
+            return `${cleanSnippet}, ${honorific}.`;
           }
         }
       }
