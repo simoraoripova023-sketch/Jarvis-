@@ -408,6 +408,45 @@ export const NeuralCoreCanvas: React.FC<NeuralCoreCanvasProps> = ({
       targetZoom.current = THREE.MathUtils.clamp(targetZoom.current + e.deltaY * 0.003, 3.5, 10.0);
     };
 
+    // Touch support for Mobile / Tablets (Touch rotation & Pinch-to-zoom)
+    let lastTouchDistance = 0;
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 1) {
+        isDraggingRef.current = true;
+        previousMousePosition.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      } else if (e.touches.length === 2) {
+        lastTouchDistance = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+      }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches.length === 1 && isDraggingRef.current) {
+        const deltaX = e.touches[0].clientX - previousMousePosition.current.x;
+        const deltaY = e.touches[0].clientY - previousMousePosition.current.y;
+
+        targetRotation.current.x += deltaX * 0.008;
+        targetRotation.current.y += deltaY * 0.008;
+
+        previousMousePosition.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      } else if (e.touches.length === 2 && lastTouchDistance > 0) {
+        const currentDist = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+        const pinchDelta = (lastTouchDistance - currentDist) * 0.012;
+        targetZoom.current = THREE.MathUtils.clamp(targetZoom.current + pinchDelta, 3.5, 10.0);
+        lastTouchDistance = currentDist;
+      }
+    };
+
+    const handleTouchEnd = () => {
+      isDraggingRef.current = false;
+      lastTouchDistance = 0;
+    };
+
     const handleResize = () => {
       if (!mountRef.current) return;
       const w = mountRef.current.clientWidth;
@@ -454,6 +493,9 @@ export const NeuralCoreCanvas: React.FC<NeuralCoreCanvasProps> = ({
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);
     dom.addEventListener('wheel', handleWheel, { passive: true });
+    dom.addEventListener('touchstart', handleTouchStart, { passive: true });
+    window.addEventListener('touchmove', handleTouchMove, { passive: true });
+    window.addEventListener('touchend', handleTouchEnd);
     window.addEventListener('resize', handleResize);
 
     return () => {
@@ -463,6 +505,9 @@ export const NeuralCoreCanvas: React.FC<NeuralCoreCanvasProps> = ({
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
       dom.removeEventListener('wheel', handleWheel);
+      dom.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleTouchEnd);
       window.removeEventListener('resize', handleResize);
       renderer.dispose();
     };

@@ -49,6 +49,12 @@ class JarvisVoiceService {
 
   constructor() {
     this.initSpeechRecognition();
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.onvoiceschanged = () => {
+        window.speechSynthesis.getVoices();
+      };
+      window.speechSynthesis.getVoices();
+    }
   }
 
   public registerActions(actions: JarvisCommandActions) {

@@ -91,9 +91,6 @@ export const JarvisVoiceAssistant: React.FC<JarvisVoiceAssistantProps> = ({
   };
 
   const handleQuickPrompt = (prompt: string) => {
-    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    setMessages((prev) => [...prev, { id: `u-${Date.now()}`, sender: 'USER', text: prompt, time }]);
-
     if (prompt.toLowerCase().includes('youtube') || prompt.toLowerCase().includes('yutub')) {
       window.open('https://www.youtube.com', '_blank', 'noopener,noreferrer');
     } else if (prompt.toLowerCase().includes('google')) {
@@ -108,8 +105,6 @@ export const JarvisVoiceAssistant: React.FC<JarvisVoiceAssistantProps> = ({
     if (!inputText.trim()) return;
     const prompt = inputText.trim();
     setInputText('');
-    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    setMessages((prev) => [...prev, { id: `u-${Date.now()}`, sender: 'USER', text: prompt, time }]);
     jarvisVoice.processVoiceCommand(prompt);
   };
 

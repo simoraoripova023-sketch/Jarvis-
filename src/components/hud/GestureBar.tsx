@@ -152,7 +152,7 @@ export const GestureBar: React.FC<GestureBarProps> = ({
           </div>
         )}
 
-        <div className="cyber-panel px-2 py-1.5 rounded-full flex items-center space-x-2 bg-[#071525]/85 border border-[#00D9FF]/30 shadow-[0_4px_20px_rgba(0,0,0,0.6)]">
+        <div className="cyber-panel px-2 py-1.5 rounded-full flex items-center space-x-2 bg-[#071525]/85 border border-[#00D9FF]/30 shadow-[0_4px_20px_rgba(0,0,0,0.6)] max-w-[95vw] overflow-x-auto no-scrollbar">
           {gestures.map((g) => {
             const isActive = currentGesture === g.id;
             return (
