@@ -26,6 +26,13 @@ export const BootSequenceOverlay: React.FC<BootSequenceProps> = ({ onBootComplet
   useEffect(() => {
     soundManager.playBootSequenceSound();
 
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' || e.key === ' ') {
+        onBootComplete();
+      }
+    };
+    window.addEventListener('keydown', handleKey);
+
     const interval = setInterval(() => {
       setCurrentStepIndex((prev) => {
         if (prev < BOOT_STEPS.length - 1) {
@@ -43,7 +50,10 @@ export const BootSequenceOverlay: React.FC<BootSequenceProps> = ({ onBootComplet
       });
     }, 380);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('keydown', handleKey);
+    };
   }, [onBootComplete]);
 
   const currentStep = BOOT_STEPS[currentStepIndex];
@@ -66,9 +76,17 @@ export const BootSequenceOverlay: React.FC<BootSequenceProps> = ({ onBootComplet
             J.A.R.V.I.S. // NEURAL CORE OS MARK VII
           </span>
         </div>
-        <div className="flex items-center space-x-2 text-xs font-mono text-[#73EEFF]/70">
-          <Radio className="w-4 h-4 text-[#00D9FF] animate-ping" />
-          <span>JARVIS PROTOCOL V4.0</span>
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={onBootComplete}
+            className="text-[10px] font-mono text-[#73EEFF]/70 hover:text-[#00D9FF] border border-[#00D9FF]/30 hover:border-[#00D9FF] px-2.5 py-1 rounded bg-[#071525]/80 transition-all shadow-sm"
+          >
+            O'TKAZISH [ESC] ⏭
+          </button>
+          <div className="hidden sm:flex items-center space-x-2 text-xs font-mono text-[#73EEFF]/70">
+            <Radio className="w-4 h-4 text-[#00D9FF] animate-ping" />
+            <span>JARVIS PROTOCOL V4.0</span>
+          </div>
         </div>
       </div>
 

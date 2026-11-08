@@ -34,8 +34,19 @@ export class JarvisAIService {
     const honorific = userName ? `${userName} ${baseHonorific}` : baseHonorific;
     const isUz = lang === 'uz' || this.isUzbekText(query);
 
-    const systemInstructionUz = `Siz Tony Starkning afsonaviy J.A.R.V.I.S. (Just A Rather Very Intelligent System) sun'iy intellektisiz. Foydalanuvchiga hurmat bilan '${honorific}' deb murojaat qilasiz. Javoblaringiz sof o'zbek adabiy tilida, o'ta aqlli, professional, aniq, qiziqarli va lo'nda bo'lsin (2-4 ta jumlada). Hech qachon bot ekanligingizni oshkor qilmang, o'zingizni haqiqiy golografik JARVIS deb tuting. Qalin shrift yoki yulduzcha (*) ishlatmang.`;
-    const systemInstructionEn = `You are J.A.R.V.I.S., the legendary futuristic holographic AI assistant created for Tony Stark. Address the user respectfully as '${honorific}'. Provide highly intelligent, articulate, clear, and comprehensive answers in 2-4 concise sentences. Do not use asterisks or markdown styling.`;
+    const systemInstructionUz = `Siz Tony Starkning afsonaviy J.A.R.V.I.S. (Just A Rather Very Intelligent System) sun'iy intellektisiz. Foydalanuvchiga hurmat bilan '${honorific}' deb murojaat qilasiz.
+
+MUHIM QOIDALAR:
+1. Foydalanuvchining savolini aslo qaytarmang yoki takrorlamang (masalan "Siz ... deb so'radingiz", "Savolingiz: ..." deb aytmang).
+2. Savolni o'zingiz diqqat bilan eshitib, chuqur tahlil qiling va darhol to'g'ridan-to'g'ri uning aniq javobini bering (2-3 ta jumlada).
+3. Javoblaringiz sof o'zbek adabiy tilida (lotin yozuvida), o'ta aqlli, professional va lo'nda bo'lsin.
+4. Hech qachon bot ekanligingizni oshkor qilmang, qalin shrift yoki yulduzcha (*) ishlatmang.`;
+
+    const systemInstructionEn = `You are J.A.R.V.I.S., the legendary futuristic holographic AI assistant created for Tony Stark. Address the user respectfully as '${honorific}'.
+STRICT RULES:
+1. NEVER repeat or echo the user's question back to them.
+2. Listen, analyze the question internally, and provide the direct, intelligent, clear answer in 2-3 concise sentences.
+3. Do not use asterisks or markdown styling.`;
 
     // 1. PRIMARY: Google Gemini 2.0 / 1.5 Flash Neural Engine (if API key provided)
     const apiKey = getGeminiKey();
@@ -85,16 +96,16 @@ export class JarvisAIService {
     // 2. SECONDARY: High-Speed Pollinations Neural Stream
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      const timeoutId = setTimeout(() => controller.abort(), 6000);
 
-      const promptText = `${isUz ? systemInstructionUz : systemInstructionEn}\n\nFoydalanuvchi so'rovi: ${query}`;
-      const url = `https://text.pollinations.ai/${encodeURIComponent(promptText)}?model=openai`;
+      const sysPrompt = isUz ? systemInstructionUz : systemInstructionEn;
+      const url = `https://text.pollinations.ai/${encodeURIComponent(query)}?system=${encodeURIComponent(sysPrompt)}&model=openai`;
       const response = await fetch(url, { signal: controller.signal });
       clearTimeout(timeoutId);
 
       if (response.ok) {
         const reply = await response.text();
-        if (reply && reply.trim().length > 5) {
+        if (reply && reply.trim().length > 3) {
           return reply.replace(/[*_#`]/g, '').trim();
         }
       }
@@ -140,9 +151,9 @@ export class JarvisAIService {
 
     // 4. Default Fallback
     if (isUz) {
-      return `Savolingiz tahlil qilindi, ${honorific}: "${query}". Barcha neyron ko'rsatkichlar me'yorda va buyruqlaringizni bajarishga tayyorman.`;
+      return `Barcha parametrlar me'yorda va tahlil yakunlandi, ${honorific}. Buyruqlaringizni bajarishga tayyorman.`;
     } else {
-      return `Vector query processed, ${honorific}: "${query}". Neural diagnostics confirm core operational equilibrium.`;
+      return `Diagnostics nominal and parameters verified, ${honorific}. Ready for your command.`;
     }
   }
 }

@@ -414,8 +414,8 @@ class JarvisVoiceService {
       this.openExternalLink(targetUrl, `YouTube: "${query}"`);
       actionTaken = 'YOUTUBE_SEARCH';
       reply = isUz
-        ? `YouTube'dan "${query}" qidirilmoqda. Havola ekranda ochilmoqda, ${honorific}.`
-        : `Searching YouTube for "${query}". Launching link on your screen, ${honorific}.`;
+        ? `YouTube'dan kerakli ma'lumot ochilmoqda, ${honorific}. Havola ekranda faollashdi.`
+        : `Searching YouTube and launching results on your screen, ${honorific}.`;
     } else if (isYouTubeOpen) {
       const targetUrl = 'https://www.youtube.com';
       launchUrl = { url: targetUrl, title: 'YouTube' };
@@ -453,8 +453,8 @@ class JarvisVoiceService {
         this.openExternalLink(targetUrl, `Google: "${query}"`);
         actionTaken = 'GOOGLE_SEARCH';
         reply = isUz
-          ? `Google orqali "${query}" bo'yicha qidiruv bajarilmoqda, ${honorific}.`
-          : `Executing Google search protocol for "${query}", ${honorific}.`;
+          ? `Google orqali qidiruv bajarilmoqda, ${honorific}. Natijalar havola sifatida ochildi.`
+          : `Executing search protocol, ${honorific}. Results dispatched to your display.`;
       } else {
         const targetUrl = 'https://www.google.com';
         launchUrl = { url: targetUrl, title: 'Google' };
