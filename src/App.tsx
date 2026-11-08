@@ -43,12 +43,12 @@ export function App() {
     }, 1500);
   }, []);
 
-  const handleHandMove = useCallback((x: number, y: number) => {
-    setHandPos({ x, y });
+  const handleHandMove = useCallback((_x: number, _y: number) => {
+    // Hand motion dispatched directly to NeuralCoreCanvas via high-performance custom event
   }, []);
 
-  const handleHandZoom = useCallback((zoom: number) => {
-    setHandZoom(zoom);
+  const handleHandZoom = useCallback((_zoom: number) => {
+    // Hand zoom dispatched directly to NeuralCoreCanvas
   }, []);
 
   const {

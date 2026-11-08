@@ -144,6 +144,14 @@ export const GestureBar: React.FC<GestureBarProps> = ({
           </div>
         )}
 
+        {/* Hand Tracking Active Status Pill */}
+        {isWebcamActive && (
+          <div className="px-3 py-0.5 rounded-full bg-[#071525]/90 border border-[#00D9FF]/40 text-[#73EEFF] font-mono text-[9px] flex items-center space-x-1.5 shadow-lg">
+            <span className={`w-1.5 h-1.5 rounded-full ${isHandVisible ? 'bg-emerald-400 animate-ping' : 'bg-amber-400'}`} />
+            <span>{isHandVisible ? `QO'L HARAKATI: ${trackingTelemetry?.gesture || 'ANIQLANMOQDA'}` : "Qo'lingizni kameraga qarating"}</span>
+          </div>
+        )}
+
         <div className="cyber-panel px-2 py-1.5 rounded-full flex items-center space-x-2 bg-[#071525]/85 border border-[#00D9FF]/30 shadow-[0_4px_20px_rgba(0,0,0,0.6)]">
           {gestures.map((g) => {
             const isActive = currentGesture === g.id;
@@ -170,13 +178,13 @@ export const GestureBar: React.FC<GestureBarProps> = ({
             onClick={onToggleWebcam}
             className={`px-3 py-1 rounded-full font-mono text-[10px] transition-all flex items-center space-x-1.5 ${
               isWebcamActive
-                ? 'bg-[#00D9FF] text-[#03070D] font-bold shadow-[0_0_15px_#00D9FF] animate-pulse'
-                : 'hover:bg-[#00D9FF]/20 text-[#00D9FF]'
+                ? 'bg-[#00D9FF] text-[#03070D] font-bold shadow-[0_0_15px_#00D9FF]'
+                : 'bg-[#00D9FF]/20 text-[#00D9FF] border border-[#00D9FF]/50 shadow-[0_0_12px_rgba(0,217,255,0.4)] animate-pulse hover:bg-[#00D9FF]/30'
             }`}
-            title="Kamera orqali yuz va ob'ektlarni tanishni yoqish"
+            title="Qo'l va yuz harakatlarini aniqlash uchun kamerani yoqish"
           >
             <Camera className="w-3.5 h-3.5" />
-            <span>{isWebcamActive ? 'KAMERA: ON' : 'AI KAMERA'}</span>
+            <span>{isWebcamActive ? 'KAMERA: ON' : 'KAMERANI YOQISH'}</span>
           </button>
         </div>
       </div>

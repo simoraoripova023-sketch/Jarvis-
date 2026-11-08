@@ -54,6 +54,25 @@ export const NeuralCoreCanvas: React.FC<NeuralCoreCanvasProps> = ({
     }
   }, [qualityTier]);
 
+  // High-performance real-time hand motion event listener (zero React re-render overhead)
+  useEffect(() => {
+    const handleMotion = (e: Event) => {
+      const customEvent = e as CustomEvent<{ x: number; y: number; zoom?: number }>;
+      if (customEvent.detail) {
+        const { x, y, zoom } = customEvent.detail;
+        if (x !== undefined && y !== undefined) {
+          targetRotation.current.x = x * Math.PI;
+          targetRotation.current.y = y * (Math.PI * 0.5);
+        }
+        if (zoom !== undefined) {
+          targetZoom.current = zoom;
+        }
+      }
+    };
+    window.addEventListener('jarvis-hand-motion', handleMotion);
+    return () => window.removeEventListener('jarvis-hand-motion', handleMotion);
+  }, []);
+
   // Update rotation from real-time hand coordinates if camera tracking is active
   useEffect(() => {
     if (handX !== undefined && handY !== undefined) {
