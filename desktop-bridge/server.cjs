@@ -9,16 +9,18 @@ const path = require('path');
 
 const PORT = 4321;
 
-// Allowed CORS Origin
+// Allowed CORS & Private Network Access Origin
 const setCorsHeaders = (res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Access-Control-Allow-Private-Network');
+  res.setHeader('Access-Control-Allow-Private-Network', 'true');
 };
 
 // Known Windows Application Paths & Protocol Handlers
 const APP_LAUNCH_MAP = {
-  telegram: 'start telegram:',
+  telegram: 'cmd /c start tg://',
+  tg: 'cmd /c start tg://',
   calc: 'start calc.exe',
   calculator: 'start calc.exe',
   kalkulyator: 'start calc.exe',

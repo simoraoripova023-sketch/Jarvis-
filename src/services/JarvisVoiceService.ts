@@ -400,14 +400,37 @@ class JarvisVoiceService {
     if (
       input.includes('telegram') ||
       input.includes('telegrem') ||
+      input.includes('teligram') ||
       input.includes('telefram') ||
-      input === 'tg'
+      input.includes('telegramm') ||
+      input === 'tg' ||
+      input.includes('tg ') ||
+      input.includes(' tg') ||
+      input.includes('tgni')
     ) {
       actionTaken = 'OPEN_TELEGRAM';
+      
+      // 1. Direct browser protocol launch (opens native Telegram Desktop app)
+      try {
+        const link = document.createElement('a');
+        link.href = 'tg://';
+        document.body.appendChild(link);
+        link.click();
+        setTimeout(() => {
+          if (document.body.contains(link)) document.body.removeChild(link);
+        }, 100);
+      } catch {}
+
+      // 2. Native OS trigger via Desktop Bridge
       desktopBridge.openApp('telegram');
+
+      // 3. Holographic link launch
+      launchUrl = { url: 'https://web.telegram.org', title: 'Telegram' };
+      this.openExternalLink('https://web.telegram.org', 'Telegram');
+
       reply = isUz
         ? `Telegram ishga tushirildi, ${honorific}.`
-        : `Launching Telegram on your desktop now, ${honorific}.`;
+        : `Launching Telegram now, ${honorific}.`;
     } else if (
       input.includes('kalkulyator') ||
       input.includes('calculator') ||
@@ -415,6 +438,12 @@ class JarvisVoiceService {
     ) {
       actionTaken = 'OPEN_CALCULATOR';
       desktopBridge.openApp('calc');
+
+      if (!desktopBridge.getIsConnected()) {
+        launchUrl = { url: 'https://www.google.com/search?q=calculator', title: 'Kalkulyator' };
+        this.openExternalLink('https://www.google.com/search?q=calculator', 'Kalkulyator');
+      }
+
       reply = isUz ? `Kalkulyator ochildi, ${honorific}.` : `Calculator launched, ${honorific}.`;
     } else if (
       input.includes('bloknot') ||
@@ -422,6 +451,11 @@ class JarvisVoiceService {
     ) {
       actionTaken = 'OPEN_NOTEPAD';
       desktopBridge.openApp('notepad');
+
+      if (!desktopBridge.getIsConnected()) {
+        notesPlannerService.openModal();
+      }
+
       reply = isUz ? `Bloknot ochildi, ${honorific}.` : `Notepad launched, ${honorific}.`;
     } else if (
       input.includes('vs code') ||

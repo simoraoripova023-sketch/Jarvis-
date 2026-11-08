@@ -101,6 +101,31 @@ class DesktopBridgeService {
 
   // Helper actions
   public async openApp(appName: string) {
+    // Protocol URI triggers for browser environments
+    if (typeof window !== 'undefined') {
+      if (appName === 'telegram' || appName === 'tg') {
+        try {
+          const link = document.createElement('a');
+          link.href = 'tg://';
+          document.body.appendChild(link);
+          link.click();
+          setTimeout(() => {
+            if (document.body.contains(link)) document.body.removeChild(link);
+          }, 100);
+        } catch {}
+      } else if (appName === 'spotify' || appName === 'musiqa') {
+        try {
+          const link = document.createElement('a');
+          link.href = 'spotify:';
+          document.body.appendChild(link);
+          link.click();
+          setTimeout(() => {
+            if (document.body.contains(link)) document.body.removeChild(link);
+          }, 100);
+        } catch {}
+      }
+    }
+
     return this.execute('OPEN_APP', appName);
   }
 
