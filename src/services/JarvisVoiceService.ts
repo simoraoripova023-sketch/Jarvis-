@@ -891,6 +891,20 @@ class JarvisVoiceService {
         ? `Golografik qaydlar va rejalar oynasi ochildi, ${honorific}. Sizda ${activeCount} ta bajarilishi kerak bo'lgan vazifa mavjud.`
         : `Opening your holographic notes and task planner, ${honorific}. You have ${activeCount} active tasks remaining.`;
       actionTaken = 'OPEN_NOTES';
+    } else if (
+      input.includes('dars') ||
+      input.includes('darsim') ||
+      input.includes('20:30')
+    ) {
+      if (this.actions.onOpenNotesModal) {
+        this.actions.onOpenNotesModal();
+      } else {
+        notesPlannerService.openModal();
+      }
+      reply = isUz
+        ? `Bugun soat 20:30 da "AI vositalari va vazifaga mos vosita tanlash" darsi belgilangan, ${honorific}. Davomiyligi 90 daqiqa: 1-darsni eslash, AI vositalari turlari, jonli namoyish hamda amaliy mashqlar o'tiladi.`
+        : `Today at 20:30 you have a 90-minute lesson on "AI Tools and Selecting the Right Tool for the Task", ${honorific}.`;
+      actionTaken = 'SHOW_LESSON_PLAN';
     }
 
     // ==========================================

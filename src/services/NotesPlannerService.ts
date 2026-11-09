@@ -11,7 +11,82 @@ export interface JarvisNoteItem {
   timeStr: string;
 }
 
-const STORAGE_KEY = 'jarvis_holographic_notes_v1';
+const STORAGE_KEY = 'jarvis_holographic_notes_v2';
+
+const DEFAULT_LESSON_TASKS: JarvisNoteItem[] = [
+  {
+    id: 'lesson-main',
+    text: "Soat 20:30 — AI vositalari va vazifaga mos vosita tanlash darsi (90 daqiqa)",
+    category: 'URGENT',
+    completed: false,
+    timestamp: new Date().toISOString(),
+    timeStr: '20:30'
+  },
+  {
+    id: 'lesson-step-1',
+    text: "20:30–20:35: 1-darsni eslash (ANI va AGI farqi)",
+    category: 'TASK',
+    completed: false,
+    timestamp: new Date().toISOString(),
+    timeStr: '20:30'
+  },
+  {
+    id: 'lesson-step-2',
+    text: "20:35–20:45: AI va kasblardagi vazifalarning o'zgarishi",
+    category: 'TASK',
+    completed: false,
+    timestamp: new Date().toISOString(),
+    timeStr: '20:35'
+  },
+  {
+    id: 'lesson-step-3',
+    text: "20:45–21:00: AI vositalari turlari va ularning qo'llanishi",
+    category: 'TASK',
+    completed: false,
+    timestamp: new Date().toISOString(),
+    timeStr: '20:45'
+  },
+  {
+    id: 'lesson-step-4',
+    text: "21:00–21:15: Vositalar imkoniyatlari va jonli namoyish",
+    category: 'TASK',
+    completed: false,
+    timestamp: new Date().toISOString(),
+    timeStr: '21:00'
+  },
+  {
+    id: 'lesson-step-5',
+    text: "21:15–21:25: Xatolar, cheklovlar va javoblarni tekshirish",
+    category: 'TASK',
+    completed: false,
+    timestamp: new Date().toISOString(),
+    timeStr: '21:15'
+  },
+  {
+    id: 'lesson-step-6',
+    text: "21:25–21:35: Vazifaga mos vositani tanlash mezonlari",
+    category: 'TASK',
+    completed: false,
+    timestamp: new Date().toISOString(),
+    timeStr: '21:25'
+  },
+  {
+    id: 'lesson-step-7',
+    text: "21:35–21:55: Vositalarni solishtirish, amaliy mashq va muhokama",
+    category: 'TASK',
+    completed: false,
+    timestamp: new Date().toISOString(),
+    timeStr: '21:35'
+  },
+  {
+    id: 'lesson-step-8',
+    text: "21:55–22:00: Mustahkamlash va uy vazifasi",
+    category: 'REMINDER',
+    completed: false,
+    timestamp: new Date().toISOString(),
+    timeStr: '21:55'
+  }
+];
 
 class NotesPlannerService {
   private notes: JarvisNoteItem[] = [];
@@ -30,37 +105,11 @@ class NotesPlannerService {
       if (data) {
         this.notes = JSON.parse(data);
       } else {
-        // Initial welcome sample notes
-        this.notes = [
-          {
-            id: 'note-init-1',
-            text: "Mark VII neyron yadrosini to'liq kalibrlash va optimallash",
-            category: 'TASK',
-            completed: true,
-            timestamp: new Date().toISOString(),
-            timeStr: 'Bugun 10:00'
-          },
-          {
-            id: 'note-init-2',
-            text: "Soat 16:00 da loyiha bo'yicha muhim uchrashuv",
-            category: 'REMINDER',
-            completed: false,
-            timestamp: new Date().toISOString(),
-            timeStr: 'Bugun 16:00'
-          },
-          {
-            id: 'note-init-3',
-            text: "Kvant shina quvvatini 100 TB/s ga oshirish rejalashtirilsin",
-            category: 'IDEA',
-            completed: false,
-            timestamp: new Date().toISOString(),
-            timeStr: 'Bugun 14:20'
-          }
-        ];
+        this.notes = [...DEFAULT_LESSON_TASKS];
         this.saveNotes();
       }
     } catch {
-      this.notes = [];
+      this.notes = [...DEFAULT_LESSON_TASKS];
     }
   }
 

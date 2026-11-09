@@ -211,7 +211,18 @@ STRICT RULES:
       }
     } catch {}
 
-    // 4. QUATERNARY: Direct Neural Memory Check for Daily Tasks
+    // 4. QUATERNARY: Direct Neural Memory Check for Daily Tasks & 20:30 Lesson Plan
+    if (
+      lower.includes('dars') ||
+      lower.includes('20:30') ||
+      lower.includes('darsim') ||
+      lower.includes('dars reja')
+    ) {
+      return isUz
+        ? `Bugun soat 20:30 da sizning "AI vositalari va vazifaga mos vosita tanlash" mavzusida 90 daqiqalik dars rejangiz belgilangan, ${honorific}. Reja: 1-darsni eslash (ANI/AGI), AI vositalari turlari, jonli namoyish hamda amaliy mashq.`
+        : `Today at 20:30 you have a 90-minute lesson scheduled on "AI Tools and Selecting the Right Tool for the Task", ${honorific}.`;
+    }
+
     if (
       lower.includes('reja') ||
       lower.includes('topshiriq') ||
