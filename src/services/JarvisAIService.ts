@@ -126,40 +126,43 @@ STRICT RULES:
 2. Provide the direct, intelligent, clear answer in 2-3 concise sentences.
 3. Do not use asterisks or markdown styling.`;
 
-    // 1. PRIMARY: Google Gemini 2.0 / 1.5 Flash Neural Engine (if key exists)
+    // 1. PRIMARY: Google Gemini Flash Neural Engine
     const apiKey = getStoredGeminiKey();
     if (apiKey) {
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 7000);
+      const modelsToTry = ['gemini-flash-latest', 'gemini-3.8-flash', 'gemini-2.5-flash-lite'];
+      for (const modelName of modelsToTry) {
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 7000);
 
-        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-        const payload = {
-          systemInstruction: {
-            parts: [{ text: isUz ? systemInstructionUz : systemInstructionEn }]
-          },
-          contents: [{ parts: [{ text: query }] }],
-          generationConfig: { temperature: 0.7, maxOutputTokens: 350 }
-        };
+          const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+          const payload = {
+            systemInstruction: {
+              parts: [{ text: isUz ? systemInstructionUz : systemInstructionEn }]
+            },
+            contents: [{ parts: [{ text: query }] }],
+            generationConfig: { temperature: 0.7, maxOutputTokens: 350 }
+          };
 
-        const response = await fetch(geminiUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-          signal: controller.signal
-        });
+          const response = await fetch(geminiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+            signal: controller.signal
+          });
 
-        clearTimeout(timeoutId);
+          clearTimeout(timeoutId);
 
-        if (response.ok) {
-          const data = await response.json();
-          const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (text && text.trim().length > 3) {
-            return text.replace(/[*_#`]/g, '').trim();
+          if (response.ok) {
+            const data = await response.json();
+            const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (text && text.trim().length > 3) {
+              return text.replace(/[*_#`]/g, '').trim();
+            }
           }
+        } catch {
+          // Try next model or fallback
         }
-      } catch (e) {
-        console.warn('Gemini Flash fallback to secondary engine', e);
       }
     }
 
