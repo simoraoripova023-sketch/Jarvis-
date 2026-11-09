@@ -598,15 +598,7 @@ export const NeuralCoreCanvas: React.FC<NeuralCoreCanvasProps> = ({
       }
       case 'POINT':
         soundManager.playNodePulseSound();
-        // Automatically select and decode front neuron
-        onNodeSelect({
-          nodeId: 'node_042',
-          label: 'FRONTAL_SYNAPSE_GATE_V4',
-          layer: 'FRONTAL',
-          screenPos: { x: 340, y: 220 },
-          synapseCount: 4,
-          loadRate: '98.4%'
-        });
+        notesPlannerService.openModal();
         break;
       default:
         break;

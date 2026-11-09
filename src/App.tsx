@@ -38,6 +38,13 @@ export function App() {
 
   const triggerGesture = useCallback((gesture: GestureType) => {
     setCurrentGesture(gesture);
+
+    if (gesture === 'POINT') {
+      soundManager.playNodePulseSound();
+      notesPlannerService.openModal();
+      jarvisVoice.announceDailyTasks();
+    }
+
     setTimeout(() => {
       setCurrentGesture('NONE');
     }, 1500);

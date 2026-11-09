@@ -46,6 +46,7 @@ class JarvisVoiceService {
   private onTranscriptCallback: ((transcript: string, isFinal: boolean) => void) | null = null;
   private onResponseCallback: ((reply: string, userText: string, launchUrl?: { url: string; title: string }) => void) | null = null;
   private onUrlLaunchCallback: ((event: UrlLaunchEvent) => void) | null = null;
+  private taskReminderTimer: number | null = null;
 
   constructor() {
     this.initSpeechRecognition();
@@ -55,6 +56,7 @@ class JarvisVoiceService {
       };
       window.speechSynthesis.getVoices();
     }
+    this.initPeriodicTaskReminders();
   }
 
   public registerActions(actions: JarvisCommandActions) {
@@ -358,6 +360,73 @@ class JarvisVoiceService {
     }
 
     return opened;
+  }
+
+  // Voice Announcement of Today's Plans & Tasks
+  public announceDailyTasks() {
+    const isUz = this.currentLanguage === 'uz';
+    const baseHonorific = voiceBiometrics.getHonorific(isUz ? 'uz' : 'en');
+    const userName = userProfileService.getName();
+    const honorific = userName ? `${userName} ${baseHonorific}` : baseHonorific;
+
+    const notes = notesPlannerService.getNotes();
+    const pending = notes.filter((n) => !n.completed);
+
+    let message = '';
+    if (pending.length === 0) {
+      message = isUz
+        ? `Barcha kunlik topshiriqlar bajarilgan, ${honorific}. Bugungi rejalaringiz ro'yxati toza.`
+        : `All daily tasks have been completed, ${honorific}. Your schedule is clear today.`;
+    } else {
+      const taskList = pending.slice(0, 3).map((n, i) => `${i + 1}-topshiriq: ${n.text}`).join('. ');
+      message = isUz
+        ? `Bugungi rejalaringiz, ${honorific}: sizda ${pending.length} ta faol topshiriq mavjud. ${taskList}.`
+        : `Here are your daily tasks, ${honorific}: you have ${pending.length} active tasks. ${taskList}.`;
+    }
+
+    this.speak(message);
+    if (this.onResponseCallback) {
+      this.onResponseCallback(message, "Bugungi rejalarni ayt");
+    }
+  }
+
+  // Periodic Reminder Loop for Unfinished Tasks
+  public initPeriodicTaskReminders() {
+    if (typeof window === 'undefined') return;
+    if (this.taskReminderTimer) clearInterval(this.taskReminderTimer);
+
+    // Initial gentle reminder after 45 seconds of session start
+    setTimeout(() => {
+      this.checkAndRemindTask();
+    }, 45000);
+
+    // Periodic reminder every 10 minutes
+    this.taskReminderTimer = window.setInterval(() => {
+      this.checkAndRemindTask();
+    }, 10 * 60 * 1000);
+  }
+
+  private checkAndRemindTask() {
+    if (this.isSpeaking || this.isListening) return;
+
+    const notes = notesPlannerService.getNotes();
+    const pending = notes.filter((n) => !n.completed);
+    if (pending.length === 0) return;
+
+    const isUz = this.currentLanguage === 'uz';
+    const baseHonorific = voiceBiometrics.getHonorific(isUz ? 'uz' : 'en');
+    const userName = userProfileService.getName();
+    const honorific = userName ? `${userName} ${baseHonorific}` : baseHonorific;
+
+    const task = pending[Math.floor(Math.random() * pending.length)];
+    const reminder = isUz
+      ? `Eslatma, ${honorific}: Bugungi rejalaringizdan "${task.text}" topshirig'i hali kutilmoqda.`
+      : `Reminder, ${honorific}: Your task "${task.text}" is still pending.`;
+
+    this.speak(reminder);
+    if (this.onResponseCallback) {
+      this.onResponseCallback(reminder, "Rejalar eslatmasi");
+    }
   }
 
   // Universal Command & Natural Language Engine
