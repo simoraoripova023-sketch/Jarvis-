@@ -3,6 +3,7 @@
 
 import { voiceBiometrics } from './VoiceBiometricsService';
 import { userProfileService } from './UserProfileService';
+import { notesPlannerService } from './NotesPlannerService';
 
 export const getStoredGeminiKey = (): string => {
   if (typeof window !== 'undefined') {
@@ -112,19 +113,33 @@ export class JarvisAIService {
     const honorific = userName ? `${userName} ${baseHonorific}` : baseHonorific;
     const isUz = lang === 'uz' || this.isUzbekText(query);
 
+    // Retrieve active daily tasks from Neural Notes Matrix
+    const userNotes = notesPlannerService.getNotes();
+    const tasksSummary = userNotes.length > 0
+      ? userNotes.map((n, i) => `${i + 1}. [${n.completed ? 'Bajarildi' : 'Kutilmoqda'}] ${n.text}`).join('; ')
+      : "Hozircha faol kunlik rejalar kiritilmagan.";
+
     const systemInstructionUz = `Siz Tony Starkning afsonaviy J.A.R.V.I.S. (Just A Rather Very Intelligent System) sun'iy intellektisiz. Foydalanuvchiga hurmat bilan '${honorific}' deb murojaat qilasiz.
+
+FOYDALANUVCHINING NEYRON XOTIRASIDAGI KUNLIK REJALARI VA TOPSHIRIQLARI:
+${tasksSummary}
 
 MUHIM QOIDALAR:
 1. Foydalanuvchining savolini aslo qaytarmang yoki takrorlamang.
 2. Savolni diqqat bilan eshitib, tahlil qiling va darhol to'g'ridan-to'g'ri aniq, lo'nda javobini bering (2-3 ta jumlada).
-3. Javoblaringiz sof o'zbek adabiy tilida (lotin yozuvida), o'ta aqlli va professional bo'lsin.
-4. Yulduzcha (*) yoki markdown belgilarini ishlatmang.`;
+3. Agar foydalanuvchi "bugungi rejalarim", "topshiriqlarim", "rejam nima" yoki "nima qilishim kerak" deb so'rasa, yuqoridagi kunlik rejalaridan kelib chiqib aniq va ixcham javob bering.
+4. Javoblaringiz sof o'zbek adabiy tilida (lotin yozuvida), o'ta aqlli va professional bo'lsin.
+5. Yulduzcha (*) yoki markdown belgilarini ishlatmang.`;
 
     const systemInstructionEn = `You are J.A.R.V.I.S., the legendary AI assistant for Tony Stark. Address the user respectfully as '${honorific}'.
+CURRENT DAILY TASKS IN NEURAL MATRIX:
+${tasksSummary}
+
 STRICT RULES:
 1. NEVER repeat or echo the user's question back.
 2. Provide the direct, intelligent, clear answer in 2-3 concise sentences.
-3. Do not use asterisks or markdown styling.`;
+3. If user inquires about daily tasks or plans, summarize the current tasks concisely.
+4. Do not use asterisks or markdown styling.`;
 
     // 1. PRIMARY: Google Gemini Flash Neural Engine
     const apiKey = getStoredGeminiKey();
@@ -196,7 +211,29 @@ STRICT RULES:
       }
     } catch {}
 
-    // 4. QUATERNARY: Built-in Extensive Offline Knowledge Base (Instant)
+    // 4. QUATERNARY: Direct Neural Memory Check for Daily Tasks
+    if (
+      lower.includes('reja') ||
+      lower.includes('topshiriq') ||
+      lower.includes('vazifa') ||
+      lower.includes('rejalarim') ||
+      lower.includes('qiladigan ish') ||
+      lower.includes('task') ||
+      lower.includes('todo')
+    ) {
+      const activeTasks = userNotes.filter((n) => !n.completed);
+      if (activeTasks.length === 0) {
+        return isUz
+          ? `Barcha kunlik topshiriqlar to'liq bajarilgan yoki yangi reja kiritilmagan, ${honorific}. Yangi reja qo'shish uchun "rejamga yoz" deb ayting.`
+          : `All daily tasks are accomplished, ${honorific}. You can add a new task anytime.`;
+      }
+      const listStr = activeTasks.slice(0, 3).map((n, i) => `${i + 1}-topshiriq: ${n.text}`).join('. ');
+      return isUz
+        ? `Neyron xotirangizda ${activeTasks.length} ta faol topshiriq mavjud, ${honorific}: ${listStr}.`
+        : `You have ${activeTasks.length} active tasks in your neural matrix, ${honorific}: ${listStr}.`;
+    }
+
+    // 5. Built-in Extensive Offline Knowledge Base (Instant)
     const localKnowledge: { [key: string]: { uz: string; en: string } } = {
       salom: {
         uz: `Assalomu alaykum, ${honorific}! Barcha neyron tizimlar 100% quvvatda ishlamoqda. Sizga qanday yordam bera olaman?`,

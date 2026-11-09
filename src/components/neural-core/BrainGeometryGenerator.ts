@@ -151,7 +151,10 @@ export function generateBrainStructure(nodeDensityMultiplier: number = 1.0): Gen
       'CORTEX_ALPHA', 'SYNAPSE_GATE', 'NEURO_VECTOR', 'AXON_HUB',
       'QUANTUM_MATRIX', 'TENSOR_CORE', 'LOGIC_CLUSTER', 'MEM_NODE'
     ];
-    const label = `${layer}_${labels[i % labels.length]}`;
+    let label = `${layer}_${labels[i % labels.length]}`;
+    if (layer === 'FRONTAL' && i % 3 === 0) {
+      label = `KUNLIK_REJA_SEKTORI_${i}`;
+    }
 
     nodes.push({
       id: nodeId,
