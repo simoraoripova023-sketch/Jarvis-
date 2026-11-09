@@ -877,6 +877,13 @@ class JarvisVoiceService {
         : `Added to your holographic planner, ${honorific}: "${noteText}". Displaying your task list.`;
       actionTaken = 'ADD_NOTE';
     } else if (
+      input.includes('qanaqa reja') ||
+      input.includes('qanday reja') ||
+      input.includes('rejalar bor') ||
+      input.includes('rejamiz bor') ||
+      input.includes('bizda bugun') ||
+      input.includes('bugungi reja') ||
+      input.includes('ish rej') ||
       input.includes('reja') ||
       input.includes('qayd') ||
       input.includes('vazifa') ||
@@ -890,12 +897,10 @@ class JarvisVoiceService {
       } else {
         notesPlannerService.openModal();
       }
-      const notes = notesPlannerService.getNotes();
-      const activeCount = notes.filter((n) => !n.completed).length;
       reply = isUz
-        ? `Golografik qaydlar va rejalar oynasi ochildi, ${honorific}. Sizda ${activeCount} ta bajarilishi kerak bo'lgan vazifa mavjud.`
-        : `Opening your holographic notes and task planner, ${honorific}. You have ${activeCount} active tasks remaining.`;
-      actionTaken = 'OPEN_NOTES';
+        ? `Neyron yadroda joylashtirib qo'yganman ish rejangizni, Simora xonim. Bugun soat 20:30 da sizning 90 daqiqalik "AI vositalari va vazifaga mos vosita tanlash" dars rejangiz belgilangan. Reja bosqichlari: birinchidan — 1-darsni eslash va ANI hamda AGI farqi; ikkinchidan — AI va kasblardagi o'zgarishlar; uchinchidan — AI vositalari turlari; to'rtinchidan — vositalar imkoniyatlari va jonli namoyish; beshinchidan — xatolar va cheklovlar; oltinchidan — vazifaga mos vosita tanlash; yettinchidan — amaliy mashq va muhokama; hamda yakuniy uy vazifasi. Shuningdek, darsda sizni ko'p urintirmaslik va issiq coffee taklif qilish qoidasi ham neyron tizimda faol!`
+        : `I have placed your work schedule right into the neural core, Simora ma'am. Today at 20:30 you have your 90-minute AI tools lesson with all 8 stages and live demonstrations. Displaying your holographic task matrix now.`;
+      actionTaken = 'EXPLAIN_PLANS_NEURAL_CORE';
     } else if (
       input.includes('tavsiya') ||
       input.includes('maslahat') ||
@@ -1031,9 +1036,9 @@ class JarvisVoiceService {
     ) {
       if (isUz) {
         const greetingsUz = [
-          `Salom, ${honorific}! Barcha neyron tizimlar 100% quvvatda ishlamoqda. Sizga qanday yordam bera olaman?`,
-          `Assalomu alaykum, ${honorific}! J.A.R.V.I.S. tizimi buyrug'ingizga tayyor.`,
-          `${timeOfDay()}, ${honorific}! Tizim diagnostikasi optimal holatda.`
+          `Assalomu alaykum, Simora xonim! Barcha neyron tizimlar va markaziy yadro optimal holatda. Bugungi dars va rejalaringizni ko'rib chiqishga tayyorman.`,
+          `Salom, Simora xonim! Neyron yadroda barcha tizimlar faol. Bizda bugun qanaqa rejalar borligini so'rasangiz, darhol birma-bir tushuntirib beraman.`,
+          `${timeOfDay()}, Simora xonim! J.A.R.V.I.S. tizimi buyrug'ingizga tayyor. Bugungi 20:30 dars rejangiz neyron yadroda joylashtirilgan.`
         ];
         reply = greetingsUz[Math.floor(Math.random() * greetingsUz.length)];
       } else {

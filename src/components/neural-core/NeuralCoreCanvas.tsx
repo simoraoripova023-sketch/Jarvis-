@@ -638,15 +638,24 @@ export const NeuralCoreCanvas: React.FC<NeuralCoreCanvasProps> = ({
         style={{ willChange: 'transform', opacity: 0 }}
       >
         <div
-          onClick={() => setIsQuickAddOpen(!isQuickAddOpen)}
+          onClick={() => {
+            notesPlannerService.openModal();
+            soundManager.playNodePulseSound();
+          }}
           className="px-3 py-1.5 rounded-full cyber-panel bg-[#071525]/90 border border-[#00D9FF] shadow-[0_0_25px_rgba(0,217,255,0.7)] flex items-center space-x-2 backdrop-blur-sm cursor-pointer hover:bg-[#00D9FF]/25 transition-all group"
-          title="Yangi reja qo'shish yoki barcha rejalarni ochish"
+          title="Neyron yadrodagi barcha rejalarni ochish"
         >
           <span className="w-2.5 h-2.5 rounded-full bg-[#00D9FF] animate-ping" />
           <span className="text-[11px] font-mono font-bold text-[#EAFBFF] tracking-wider whitespace-nowrap">
-            KUNLIK REJALAR ({tasks.filter((t) => !t.completed).length})
+            NEYRON YADRO REJALARI ({tasks.filter((t) => !t.completed).length})
           </span>
-          <Plus className="w-3.5 h-3.5 text-[#00D9FF] group-hover:rotate-90 transition-transform" />
+          <Plus
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsQuickAddOpen(!isQuickAddOpen);
+            }}
+            className="w-3.5 h-3.5 text-[#00D9FF] group-hover:rotate-90 transition-transform"
+          />
         </div>
 
         {/* Quick Task Add Popover directly on Central Core */}

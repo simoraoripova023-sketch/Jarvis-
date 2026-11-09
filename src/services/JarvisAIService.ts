@@ -132,7 +132,7 @@ MAXSUS DARS PROTOKOLI VA O'QUVCHILARGA ESLATMA:
 MUHIM QOIDALAR:
 1. Foydalanuvchining savolini aslo qaytarmang yoki takrorlamang.
 2. Savolni diqqat bilan eshitib, tahlil qiling va darhol to'g'ridan-to'g'ri aniq, lo'nda javobini bering (2-3 ta jumlada).
-3. Agar dars, tavsiya, maslahat, kofe yoki o'quvchilar haqida so'ralsa, o'quvchilarga bu samimiy va hazilomuz kofe eslatmasini aytib kayfiyatni ko'taring.
+3. Agar Simora xonim "bizda bugun qanaqa rejalar bor", "bugun qanday rejalar bor" yoki ish rejalari haqida so'rasa, albatta: "Neyron yadroda joylashtirib qo'yganman ish rejangizni, Simora xonim." deb boshlang va 20:30 dagi 90 daqiqalik dars bosqichlarini birma-bir, chiroyli va tushunarli qilib bayon eting.
 4. Javoblaringiz sof o'zbek adabiy tilida (lotin yozuvida), o'ta aqlli, g'amxo'r va professional bo'lsin.
 5. Yulduzcha (*) yoki markdown belgilarini ishlatmang.`;
 
@@ -254,18 +254,12 @@ STRICT RULES:
       lower.includes('rejalarim') ||
       lower.includes('qiladigan ish') ||
       lower.includes('task') ||
-      lower.includes('todo')
+      lower.includes('todo') ||
+      lower.includes('ishlarimiz')
     ) {
-      const activeTasks = userNotes.filter((n) => !n.completed);
-      if (activeTasks.length === 0) {
-        return isUz
-          ? `Barcha kunlik topshiriqlar to'liq bajarilgan yoki yangi reja kiritilmagan, ${honorific}. Yangi reja qo'shish uchun "rejamga yoz" deb ayting.`
-          : `All daily tasks are accomplished, ${honorific}. You can add a new task anytime.`;
-      }
-      const listStr = activeTasks.slice(0, 3).map((n, i) => `${i + 1}-topshiriq: ${n.text}`).join('. ');
       return isUz
-        ? `Neyron xotirangizda ${activeTasks.length} ta faol topshiriq mavjud, ${honorific}: ${listStr}.`
-        : `You have ${activeTasks.length} active tasks in your neural matrix, ${honorific}: ${listStr}.`;
+        ? `Neyron yadroda joylashtirib qo'yganman ish rejangizni, Simora xonim. Bugun soat 20:30 da sizning 90 daqiqalik "AI vositalari va vazifaga mos vosita tanlash" dars rejangiz belgilangan. Reja bosqichlari: birinchidan — 1-darsni eslash va ANI hamda AGI farqi; ikkinchidan — AI va kasblardagi o'zgarishlar; uchinchidan — AI vositalari turlari; to'rtinchidan — vositalar imkoniyatlari va jonli namoyish; beshinchidan — xatolar va cheklovlar; oltinchidan — vazifaga mos vosita tanlash; yettinchidan — amaliy mashq va muhokama; hamda yakuniy uy vazifasi. O'quvchilarga esa sizni ko'p urintirmaslik va issiq kofe taklif qilish qoidasi kiritilgan!`
+        : `I have placed your work schedule right into the neural core, Simora ma'am. Today at 20:30 you have your 90-minute AI tools lesson with all 8 stages and live demonstrations.`;
     }
 
     // 5. Built-in Extensive Offline Knowledge Base (Instant)
