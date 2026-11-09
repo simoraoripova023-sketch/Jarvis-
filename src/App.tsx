@@ -40,9 +40,11 @@ export function App() {
     setCurrentGesture(gesture);
 
     if (gesture === 'POINT') {
-      soundManager.playNodePulseSound();
-      notesPlannerService.openModal();
-      jarvisVoice.announceDailyTasks();
+      if (!notesPlannerService.getIsModalOpen()) {
+        soundManager.playNodePulseSound();
+        notesPlannerService.openModal();
+        jarvisVoice.announceDailyTasks();
+      }
     }
 
     setTimeout(() => {
