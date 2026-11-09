@@ -4,6 +4,8 @@ import { GestureType, QualityTier, ActiveCallout, NeuralNode, SystemThemeMode } 
 import { generateBrainStructure } from './BrainGeometryGenerator';
 import { SynapseLineShader, HolographicRingShader, HexGridShader } from './NeuralCoreShaders';
 import { soundManager } from '../../services/AudioSynthesizer';
+import { notesPlannerService, JarvisNoteItem } from '../../services/NotesPlannerService';
+import { CheckCircle2, Circle, Plus, Trash2, Calendar, Sparkles, ClipboardList } from 'lucide-react';
 
 interface NeuralCoreCanvasProps {
   gesture: GestureType;
@@ -43,6 +45,20 @@ export const NeuralCoreCanvas: React.FC<NeuralCoreCanvasProps> = ({
   const currentExpansion = useRef(0.0);
 
   const hoveredNodeRef = useRef<NeuralNode | null>(null);
+
+  // Real-Time Daily Tasks on Central Core Matrix
+  const [tasks, setTasks] = useState<JarvisNoteItem[]>(notesPlannerService.getNotes());
+  const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
+  const [quickTaskText, setQuickTaskText] = useState('');
+
+  const coreCenterRef = useRef<HTMLDivElement>(null);
+  const taskElementsRef = useRef<(HTMLDivElement | null)[]>([]);
+  const taskLinesRef = useRef<(SVGLineElement | null)[]>([]);
+
+  useEffect(() => {
+    const unsub = notesPlannerService.subscribe(setTasks);
+    return () => unsub();
+  }, []);
 
   const getQualityMultiplier = useCallback(() => {
     switch (qualityTier) {
@@ -375,6 +391,57 @@ export const NeuralCoreCanvas: React.FC<NeuralCoreCanvasProps> = ({
       }
 
       renderer.render(scene, camera);
+
+      // Project Central Brain Core & Daily Tasks Matrix to 2D Screen Space
+      const coreWorld = new THREE.Vector3(0, 0, 0);
+      coreWorld.applyMatrix4(brainGroup.matrixWorld);
+      coreWorld.project(camera);
+
+      const coreX = (coreWorld.x * 0.5 + 0.5) * width;
+      const coreY = (-(coreWorld.y * 0.5) + 0.5) * height;
+
+      if (coreCenterRef.current) {
+        coreCenterRef.current.style.transform = `translate3d(${coreX}px, ${coreY}px, 0) translate(-50%, -50%)`;
+        coreCenterRef.current.style.opacity = coreWorld.z < 1.0 ? '1' : '0';
+      }
+
+      // 4 Spatial Anchors Orbiting Around Central Brain Core
+      const taskAnchors = [
+        new THREE.Vector3(1.25, 0.45, 0.2),
+        new THREE.Vector3(-1.3, 0.4, -0.2),
+        new THREE.Vector3(1.2, -0.45, -0.15),
+        new THREE.Vector3(-1.25, -0.5, 0.2)
+      ];
+
+      taskAnchors.forEach((anchor, i) => {
+        const el = taskElementsRef.current[i];
+        const line = taskLinesRef.current[i];
+        if (!el) return;
+
+        const worldPos = anchor.clone();
+        worldPos.applyMatrix4(brainGroup.matrixWorld);
+        worldPos.project(camera);
+
+        const tx = (worldPos.x * 0.5 + 0.5) * width;
+        const ty = (-(worldPos.y * 0.5) + 0.5) * height;
+        const isVisible = worldPos.z < 1.0;
+
+        const alignX = anchor.x > 0 ? '0%' : '-100%';
+        el.style.transform = `translate3d(${tx}px, ${ty}px, 0) translate(${alignX}, -50%)`;
+        el.style.opacity = isVisible ? '1' : '0';
+
+        if (line) {
+          if (isVisible) {
+            line.setAttribute('x1', String(coreX));
+            line.setAttribute('y1', String(coreY));
+            line.setAttribute('x2', String(tx));
+            line.setAttribute('y2', String(ty));
+            line.style.opacity = '0.55';
+          } else {
+            line.style.opacity = '0';
+          }
+        }
+      });
     };
 
     animate();
@@ -546,9 +613,131 @@ export const NeuralCoreCanvas: React.FC<NeuralCoreCanvasProps> = ({
     }
   }, [gesture, onNodeSelect]);
 
+  const visibleTasks = tasks.slice(0, 4);
+
   return (
-    <div className="relative w-full h-full">
+    <div className="relative w-full h-full overflow-hidden select-none">
       <div ref={mountRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
+
+      {/* Cybernetic Holographic Leader Lines connecting Central Core to Tasks */}
+      <svg className="absolute inset-0 pointer-events-none w-full h-full z-10 overflow-visible">
+        <defs>
+          <linearGradient id="cyberLineGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#00D9FF" stopOpacity="0.8" />
+            <stop offset="100%" stopColor="#73EEFF" stopOpacity="0.3" />
+          </linearGradient>
+        </defs>
+        {[0, 1, 2, 3].map((idx) => (
+          <line
+            key={idx}
+            ref={(el) => (taskLinesRef.current[idx] = el)}
+            stroke="url(#cyberLineGrad)"
+            strokeWidth="1.5"
+            strokeDasharray="4 2"
+            style={{ opacity: 0 }}
+          />
+        ))}
+      </svg>
+
+      {/* Central Brain Core Reactor Task Badge */}
+      <div
+        ref={coreCenterRef}
+        className="absolute top-0 left-0 pointer-events-auto z-20 flex flex-col items-center justify-center select-none"
+        style={{ willChange: 'transform', opacity: 0 }}
+      >
+        <div
+          onClick={() => setIsQuickAddOpen(!isQuickAddOpen)}
+          className="px-3 py-1.5 rounded-full cyber-panel bg-[#071525]/90 border border-[#00D9FF] shadow-[0_0_25px_rgba(0,217,255,0.7)] flex items-center space-x-2 backdrop-blur-sm cursor-pointer hover:bg-[#00D9FF]/25 transition-all group"
+          title="Yangi reja qo'shish yoki barcha rejalarni ochish"
+        >
+          <span className="w-2.5 h-2.5 rounded-full bg-[#00D9FF] animate-ping" />
+          <span className="text-[11px] font-mono font-bold text-[#EAFBFF] tracking-wider whitespace-nowrap">
+            KUNLIK REJALAR ({tasks.filter((t) => !t.completed).length})
+          </span>
+          <Plus className="w-3.5 h-3.5 text-[#00D9FF] group-hover:rotate-90 transition-transform" />
+        </div>
+
+        {/* Quick Task Add Popover directly on Central Core */}
+        {isQuickAddOpen && (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!quickTaskText.trim()) return;
+              notesPlannerService.addNote(quickTaskText.trim(), 'TASK');
+              setQuickTaskText('');
+              setIsQuickAddOpen(false);
+              soundManager.playQuerySentSound();
+            }}
+            className="mt-2.5 cyber-panel p-2 rounded bg-[#071525]/95 border-2 border-[#00D9FF] shadow-[0_0_30px_rgba(0,217,255,0.6)] flex items-center space-x-1.5 animate-in fade-in zoom-in-95"
+          >
+            <input
+              type="text"
+              autoFocus
+              value={quickTaskText}
+              onChange={(e) => setQuickTaskText(e.target.value)}
+              placeholder="Yangi topshiriq yozing..."
+              className="px-2.5 py-1 text-[11px] font-mono rounded bg-[#03070D] border border-[#00D9FF]/40 text-white placeholder-[#73EEFF]/40 focus:outline-none focus:border-[#00D9FF] w-48"
+            />
+            <button
+              type="submit"
+              className="px-2.5 py-1 rounded bg-[#00D9FF] text-[#03070D] font-mono font-bold text-[10px] hover:bg-[#73EEFF] transition-colors"
+            >
+              QO'SHISH
+            </button>
+          </form>
+        )}
+      </div>
+
+      {/* Floating Holographic 3D Task Cards Orbiting Central Core */}
+      {visibleTasks.map((task, i) => (
+        <div
+          key={task.id}
+          ref={(el) => (taskElementsRef.current[i] = el)}
+          className="absolute top-0 left-0 pointer-events-auto z-20 select-none"
+          style={{ willChange: 'transform', opacity: 0 }}
+        >
+          <div
+            className={`cyber-panel px-3 py-1.5 rounded bg-[#071525]/95 border shadow-[0_0_20px_rgba(0,217,255,0.35)] backdrop-blur-md max-w-[200px] sm:max-w-[240px] flex items-center space-x-2 transition-all ${
+              task.completed
+                ? 'border-emerald-500/40 text-emerald-300/60 shadow-[0_0_10px_rgba(16,185,129,0.2)]'
+                : 'border-[#00D9FF]/70 text-[#EAFBFF] hover:border-[#00D9FF]'
+            }`}
+          >
+            <button
+              onClick={() => {
+                notesPlannerService.toggleComplete(task.id);
+                soundManager.playNodePulseSound();
+              }}
+              className="flex-shrink-0"
+            >
+              {task.completed ? (
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+              ) : (
+                <Circle className="w-3.5 h-3.5 text-[#00D9FF] hover:text-[#73EEFF]" />
+              )}
+            </button>
+            <div className="flex-1 overflow-hidden">
+              <p
+                className={`text-[10px] font-mono leading-tight truncate ${
+                  task.completed ? 'line-through text-emerald-400/50' : 'font-semibold text-white'
+                }`}
+              >
+                {task.text}
+              </p>
+              <span className="text-[8px] font-mono text-[#73EEFF]/50 block">
+                {task.timeStr}
+              </span>
+            </div>
+            <button
+              onClick={() => notesPlannerService.deleteNote(task.id)}
+              className="p-0.5 text-red-400/50 hover:text-red-400 flex-shrink-0"
+              title="O'chirish"
+            >
+              <Trash2 className="w-3 h-3" />
+            </button>
+          </div>
+        </div>
+      ))}
     </div>
   );
 };
