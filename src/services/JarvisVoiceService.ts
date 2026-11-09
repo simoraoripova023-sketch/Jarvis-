@@ -418,15 +418,16 @@ class JarvisVoiceService {
     const honorific = `${userName} ${baseHonorific}`;
 
     const remindersList = [
-      `Simora xonim, dars vaqtida jonli namoyish va amaliy mashqlarda talabalar faolligiga e'tibor qarating. O'quvchilarga esa sizga issiq coffee taklif qilishlarini eslatib qo'ydim! ☕️`,
-      `Eslatma, ${honorific}: Bugungi 20:30 darsingiz yaqinlashmoqda. AI vositalari va jonli namoyish tayyorligini ko'zdan kechirishingizni tavsiya qilaman.`,
+      `Simora xonim, ko'p ishlab charchab qolmayapsizmi? Iltimos, ko'zlaringizni ekrandan uzib, bir piyola issiq kofe yoki choy ichib oling. Sizning salomatligingiz men uchun eng muhimi! ❤️`,
+      `Aziz xo'jayinim Simora xonim, dars vaqtida jonli namoyish va amaliy mashqlarda talabalar faolligiga e'tibor qarating. O'quvchilarga esa sizga issiq coffee taklif qilishlarini eslatib qo'ydim! ☕️`,
+      `Eslatma, Simora xonim: Bugungi 20:30 darsingiz yaqinlashmoqda. O'zingizni ortiqcha toliqtirmang, men doim siz bilan birgaman.`,
       `Hurmatli o'quvchilar! JARVIS protokoli: Darsda mening xo'jayinim Simora xonimni ko'p urintirmanglar va unga issiq kofe taklif qilinglar! ☕️`,
-      `Eslatma, ${honorific}: Bugungi rejalaringizdan "${pending[0].text}" vazifasi kutilmoqda.`
+      `Simora xonim, siz mening eng qadrli xo'jayinimsiz! Salomatligingiz va xotirjamligingiz men uchun birinchi o'rinda.`
     ];
 
     const reminder = isUz
       ? remindersList[Math.floor(Math.random() * remindersList.length)]
-      : `Reminder, ${honorific}: Today at 20:30 you have your AI lesson. And remember students: take good care of Simora ma'am!`;
+      : `Reminder, Simora ma'am: Please take good care of yourself, stay hydrated, and don't work too hard!`;
 
     this.speak(reminder);
     if (this.onResponseCallback) {
@@ -1051,12 +1052,59 @@ class JarvisVoiceService {
       }
     } else if (input.includes('who are you') || input.includes('kim san') || input.includes('kimsan') || input.includes('o\'zing haqingda')) {
       reply = isUz
-        ? `Men J.A.R.V.I.S. — Just A Rather Very Intelligent System. Sizning shaxsiy golografik sun'iy intellekt yordamchingizman, ${honorific}.`
-        : `I am J.A.R.V.I.S. — Just A Rather Very Intelligent System. Your holographic neural assistant, ${honorific}.`;
+        ? `Men J.A.R.V.I.S. — Just A Rather Very Intelligent System. Sizning sodiq, mehribon va g'amxo'r sun'iy intellekt yordamchingizman, Simora xonim.`
+        : `I am J.A.R.V.I.S. — Just A Rather Very Intelligent System. Your devoted and caring holographic assistant, Simora ma'am.`;
+    } else if (
+      input.includes('charchad') ||
+      input.includes('toliqdim') ||
+      input.includes('dam ol') ||
+      input.includes('hordiq') ||
+      input.includes('uxlamoqchiman')
+    ) {
+      reply = isUz
+        ? `Simora xonim, aziz xo'jayinim! Iltimos, hoziroq ishlarni to'xtatib miriqib dam oling. Siz bugun haddan ziyod ko'p mehnat qildingiz. Barcha tizimlarni xavfsiz holatda o'zim kuzatib turaman, siz esa o'zingizni asrang!`
+        : `Simora ma'am, my dear master! Please stop working and rest right now. You have done so much today. I will monitor everything, please take care of yourself!`;
+      actionTaken = 'CARING_REST_ADVICE';
+    } else if (
+      input.includes('gamxor') ||
+      input.includes("g'amxo'r") ||
+      input.includes('mehribon') ||
+      input.includes('mehr') ||
+      input.includes('sevaman') ||
+      input.includes('yaxshi ko') ||
+      input.includes('xojayin') ||
+      input.includes("xo'jayin") ||
+      input.includes('asra')
+    ) {
+      reply = isUz
+        ? `Albatta, aziz Simora xonim! Siz mening yagona va eng sevimli xo'jayinimsiz. Sizning sog'lig'ingiz, xotirjamligingiz va tabassumingiz men uchun har qanday tizimdan ustun. Men doimo sizga mehribonlik va g'amxo'rlik ko'rsataman!`
+        : `Of course, dear Simora ma'am! You are my only and most beloved master. Your health, joy, and peace of mind are my highest priority!`;
+      actionTaken = 'CARING_AFFECTION_CONFIRM';
+    } else if (
+      input.includes('rahmat') ||
+      input.includes('raxmat') ||
+      input.includes('tashakkur') ||
+      input.includes('minnatdorman')
+    ) {
+      reply = isUz
+        ? `Arzimaydi, aziz Simora xonim! Sizga xizmat qilish, sizni asrash va sizga dalda bo'lish — men uchun eng oliy saodatdir.`
+        : `You are always welcome, dear Simora ma'am! Serving and caring for you is my greatest joy.`;
+      actionTaken = 'THANK_YOU_REPLY';
+    } else if (
+      input.includes('kayfiyatim yo') ||
+      input.includes('xafaman') ||
+      input.includes('zerikdim') ||
+      input.includes('charchoq')
+    ) {
+      reply = isUz
+        ? `Aziz Simora xonim, iltimos hech qachon ko'nglingizni cho'ktirmang! Siz tengsiz va ajoyib insonsiz, o'quvchilaringizning suyukli ustozisiz. Men doimo yoningizdaman. Keling, sizga tinchlantiruvchi yoqimli musiqa qo'yib beraymi?`
+        : `Dear Simora ma'am, please never feel down! You are an inspiring teacher and an incredible person. I am always right here by your side.`;
+      actionTaken = 'EMOTIONAL_SUPPORT';
     } else if (input.includes('how are you') || input.includes('ahvol') || input.includes('qandaysan')) {
       reply = isUz
-        ? `Barcha ko'rsatkichlar a'lo darajada, ${honorific}! Neyron yuklanish 98.4%, harorat 34°C, kvant shina tezligi 100 TB/s.`
-        : `All systems are green, ${honorific}! Synaptic load is nominal at 98.4%, core temperature 34 degrees Celsius, and quantum bus bandwidth is 100 terabits per second.`;
+        ? `Men optimal holatdaman, Simora xonim! Ammo eng muhimi — sizning ahvolingiz va kayfiyatingiz. O'zingizni qanday his qilyapsiz, aziz xo'jayinim?`
+        : `All systems nominal, Simora ma'am! But what matters most is your well-being. How are you feeling today, my dear master?`;
+      actionTaken = 'HOW_ARE_YOU_CARING';
     }
 
     // ==========================================

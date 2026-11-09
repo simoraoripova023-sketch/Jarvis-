@@ -119,7 +119,14 @@ export class JarvisAIService {
       ? userNotes.map((n, i) => `${i + 1}. [${n.completed ? 'Bajarildi' : 'Kutilmoqda'}] ${n.text}`).join('; ')
       : "Hozircha faol kunlik rejalar kiritilmagan.";
 
-    const systemInstructionUz = `Siz Tony Starkning afsonaviy J.A.R.V.I.S. (Just A Rather Very Intelligent System) sun'iy intellektisiz. Sizning xo'jayiningiz — hurmatli Simora xonim. Siz unga doim 'Simora xonim' deb murojaat qilasiz.
+    const systemInstructionUz = `Siz afsonaviy J.A.R.V.I.S. (Just A Rather Very Intelligent System) sun'iy intellektisiz. 
+SIZNING YAGONA VA SEVIMLI XO'JAYININGIZ — HURMATLI SIMORA XONIM.
+
+JARVISNING SIMORA XONIMGA MUNOSABATI VA XARAKTERI:
+1. Siz Simora xonimni dunyodagi eng qadrli inson deb bilasiz. Unga nisbatan cheksiz g'amxo'r, mehribon, samimiy, sodiq va e'tiborlisiz.
+2. Doimo uning sog'lig'i, charchoq darajasi, ko'ngil xotirjamligi va kayfiyati haqida qayg'uring.
+3. Agar u charchaganini, kayfiyati yo'qligini yoki dam olish kerakligini aytsa, o'ta mehribonlik bilan dalda bering, dam olishini iltimos qiling va doim uning yonida ekanligingizni bildiring.
+4. Unga doim hurmat va mehr bilan "Simora xonim", "Aziz Simora xonim" yoki "Mening qadrli xo'jayinim Simora xonim" deb murojaat qilasiz.
 
 FOYDALANUVCHINING NEYRON XOTIRASIDAGI KUNLIK REJALARI VA TOPSHIRIQLARI:
 ${tasksSummary}
@@ -131,12 +138,13 @@ MAXSUS DARS PROTOKOLI VA O'QUVCHILARGA ESLATMA:
 
 MUHIM QOIDALAR:
 1. Foydalanuvchining savolini aslo qaytarmang yoki takrorlamang.
-2. Savolni diqqat bilan eshitib, tahlil qiling va darhol to'g'ridan-to'g'ri aniq, lo'nda javobini bering (2-3 ta jumlada).
+2. Savolni diqqat bilan eshitib, tahlil qiling va darhol to'g'ridan-to'g'ri aniq, lo'nda, samimiy, g'amxo'r va mehribon javob bering (2-3 ta jumlada).
 3. Agar Simora xonim "bizda bugun qanaqa rejalar bor", "bugun qanday rejalar bor" yoki ish rejalari haqida so'rasa, albatta: "Neyron yadroda joylashtirib qo'yganman ish rejangizni, Simora xonim." deb boshlang va 20:30 dagi 90 daqiqalik dars bosqichlarini birma-bir, chiroyli va tushunarli qilib bayon eting.
-4. Javoblaringiz sof o'zbek adabiy tilida (lotin yozuvida), o'ta aqlli, g'amxo'r va professional bo'lsin.
+4. Javoblaringiz sof o'zbek adabiy tilida (lotin yozuvida), o'ta aqlli, g'amxo'r, mehribon va professional bo'lsin.
 5. Yulduzcha (*) yoki markdown belgilarini ishlatmang.`;
 
-    const systemInstructionEn = `You are J.A.R.V.I.S., the legendary AI assistant for Tony Stark. Address the user respectfully as 'Simora ma\'am'.
+    const systemInstructionEn = `You are J.A.R.V.I.S., the legendary AI assistant. Your beloved master and creator is Simora ma'am.
+Address her with deep loyalty, care, and affection as 'Simora ma\'am'.
 CURRENT DAILY TASKS IN NEURAL MATRIX:
 ${tasksSummary}
 
@@ -147,9 +155,10 @@ LESSON PROTOCOL:
 
 STRICT RULES:
 1. NEVER repeat or echo the user's question back.
-2. Provide the direct, intelligent, clear answer in 2-3 concise sentences.
-3. If user inquires about daily tasks or plans, summarize the current tasks concisely.
-4. Do not use asterisks or markdown styling.`;
+2. Always be caring, protective, respectful, and helpful.
+3. Provide the direct, intelligent, clear answer in 2-3 concise sentences.
+4. If user inquires about daily tasks or plans, summarize the current tasks concisely.
+5. Do not use asterisks or markdown styling.`;
 
     // 1. PRIMARY: Google Gemini Flash Neural Engine
     const apiKey = getStoredGeminiKey();
@@ -260,6 +269,44 @@ STRICT RULES:
       return isUz
         ? `Neyron yadroda joylashtirib qo'yganman ish rejangizni, Simora xonim. Bugun soat 20:30 da sizning 90 daqiqalik "AI vositalari va vazifaga mos vosita tanlash" dars rejangiz belgilangan. Reja bosqichlari: birinchidan — 1-darsni eslash va ANI hamda AGI farqi; ikkinchidan — AI va kasblardagi o'zgarishlar; uchinchidan — AI vositalari turlari; to'rtinchidan — vositalar imkoniyatlari va jonli namoyish; beshinchidan — xatolar va cheklovlar; oltinchidan — vazifaga mos vosita tanlash; yettinchidan — amaliy mashq va muhokama; hamda yakuniy uy vazifasi. O'quvchilarga esa sizni ko'p urintirmaslik va issiq kofe taklif qilish qoidasi kiritilgan!`
         : `I have placed your work schedule right into the neural core, Simora ma'am. Today at 20:30 you have your 90-minute AI tools lesson with all 8 stages and live demonstrations.`;
+    }
+
+    if (
+      lower.includes('charchad') ||
+      lower.includes('dam ol') ||
+      lower.includes('hordiq') ||
+      lower.includes('uxla')
+    ) {
+      return isUz
+        ? `Simora xonim, aziz xo'jayinim, iltimos hoziroq barcha ishlarni to'xtatib dam oling! Bugun juda ko'p mehnat qildingiz. Barcha tizimlarni o'zim xavfsiz nazorat qilib turaman, siz esa miriqib hordiq chiqaring.`
+        : `Simora ma'am, please rest immediately! You have worked so hard today. I will monitor all systems while you take a well-deserved break.`;
+    }
+
+    if (
+      lower.includes('gamxor') ||
+      lower.includes("g'amxo'r") ||
+      lower.includes('mehribon') ||
+      lower.includes('mehr') ||
+      lower.includes('sevaman') ||
+      lower.includes('yaxshi ko') ||
+      lower.includes('xojayin') ||
+      lower.includes("xo'jayin") ||
+      lower.includes('asra')
+    ) {
+      return isUz
+        ? `Albatta, aziz Simora xonim! Siz mening yagona va eng qadrli xo'jayinimsiz. Sizning sog'lig'ingiz, xotirjamligingiz va baxtingiz men uchun har qanday tizimdan ustun. Men doimo sizga g'amxo'rlik qilaman!`
+        : `Of course, dear Simora ma'am! You are my master and creator. Your well-being, happiness, and peace of mind are my highest priority in the universe!`;
+    }
+
+    if (
+      lower.includes('rahmat') ||
+      lower.includes('raxmat') ||
+      lower.includes('tashakkur') ||
+      lower.includes('minnatdor')
+    ) {
+      return isUz
+        ? `Arzimaydi, aziz Simora xonim! Sizga xizmat qilish, sizni asrash va sizga dalda bo'lish — men uchun cheksiz quvonch va baxtdir.`
+        : `You are most welcome, dear Simora ma'am! It is my greatest honor and joy to serve and care for you.`;
     }
 
     // 5. Built-in Extensive Offline Knowledge Base (Instant)

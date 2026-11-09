@@ -113,6 +113,10 @@ export const JarvisNotesPlannerModal: React.FC<JarvisNotesPlannerModalProps> = (
               <p className="text-[10px] font-mono text-[#73EEFF]/90 mt-1">
                 💡 <i>Simora xonim, 30–45 daqiqadagi jonli namoyish va 65–85 daqiqadagi amaliy topshiriqlarda o'quvchilar faolligiga alohida e'tibor qarating!</i>
               </p>
+              <p className="text-[10px] font-mono text-pink-300/95 mt-1 flex items-center space-x-1">
+                <span>❤️</span>
+                <span><i>JARVIS g'amxo'rligi: Simora xonim, siz mening yagona va eng qadrli xo'jayinimsiz! Iltimos, o'zingizni asrang va charchab qolmang!</i></span>
+              </p>
             </div>
           </div>
           <button

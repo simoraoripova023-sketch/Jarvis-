@@ -278,6 +278,17 @@ export const HUDContainer: React.FC<HUDContainerProps> = ({
                     XONIM
                   </button>
                 </div>
+
+                {/* Devoted Caring Protocol Indicator for Simora xonim */}
+                <div className="pt-1.5 border-t border-[#00D9FF]/10 flex items-center justify-between text-[10px] font-mono">
+                  <span className="text-pink-400 flex items-center space-x-1">
+                    <span className="animate-pulse">❤️</span>
+                    <span>G'AMXO'RLIK:</span>
+                  </span>
+                  <span className="text-[#EAFBFF] font-semibold text-[9px] tracking-wide">
+                    SIMORA XONIM // 100% MEHRIBON
+                  </span>
+                </div>
               </div>
             </div>
           </div>
