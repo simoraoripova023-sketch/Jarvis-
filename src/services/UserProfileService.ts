@@ -12,14 +12,14 @@ export interface UserProfile {
   totalLogins: number;
 }
 
-const STORAGE_KEY = 'jarvis_user_profile_memory_v1';
+const STORAGE_KEY = 'jarvis_user_profile_memory_v2';
 
 class UserProfileService {
   private profile: UserProfile = {
-    name: '',
-    isRegistered: false,
-    registeredAt: '',
-    totalLogins: 0
+    name: 'Simora',
+    isRegistered: true,
+    registeredAt: new Date().toISOString(),
+    totalLogins: 1
   };
 
   private isEnrollmentModalOpen: boolean = false;
@@ -36,9 +36,22 @@ class UserProfileService {
       const data = localStorage.getItem(STORAGE_KEY);
       if (data) {
         this.profile = JSON.parse(data);
+      } else {
+        this.profile = {
+          name: 'Simora',
+          isRegistered: true,
+          registeredAt: new Date().toISOString(),
+          totalLogins: 1
+        };
+        this.saveProfile();
       }
     } catch {
-      this.profile = { name: '', isRegistered: false, registeredAt: '', totalLogins: 0 };
+      this.profile = {
+        name: 'Simora',
+        isRegistered: true,
+        registeredAt: new Date().toISOString(),
+        totalLogins: 1
+      };
     }
   }
 

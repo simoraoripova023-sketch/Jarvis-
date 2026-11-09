@@ -50,7 +50,7 @@ export const JarvisNotesPlannerModal: React.FC<JarvisNotesPlannerModalProps> = (
 
   const completedCount = notes.filter((n) => n.completed).length;
   const pendingCount = notes.length - completedCount;
-  const honorific = voiceBiometrics.getHonorific(jarvisVoice.getLanguage());
+  const honorific = 'Simora xonim';
 
   const getCategoryBadge = (cat: NoteCategory) => {
     switch (cat) {
@@ -62,12 +62,14 @@ export const JarvisNotesPlannerModal: React.FC<JarvisNotesPlannerModalProps> = (
         return <span className="text-[9px] px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/40 font-mono">G'OYA</span>;
       case 'URGENT':
         return <span className="text-[9px] px-1.5 py-0.5 rounded bg-red-500/20 text-red-400 border border-red-500/40 font-mono">MUHIM</span>;
+      case 'ADVICE':
+        return <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-mono">TAVSIYA</span>;
     }
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-      <div className="relative w-full max-w-xl cyber-panel rounded-lg p-5 bg-[#071525]/95 border-2 border-[#00D9FF] shadow-[0_0_40px_rgba(0,217,255,0.4)] flex flex-col max-h-[85vh]">
+      <div className="relative w-full max-w-xl cyber-panel rounded-lg p-5 bg-[#071525]/95 border-2 border-[#00D9FF] shadow-[0_0_40px_rgba(0,217,255,0.4)] flex flex-col max-h-[88vh]">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-[#00D9FF]/30 pb-3 mb-3">
           <div className="flex items-center space-x-2.5">
@@ -80,7 +82,7 @@ export const JarvisNotesPlannerModal: React.FC<JarvisNotesPlannerModalProps> = (
                 <span className="w-2 h-2 rounded-full bg-[#00D9FF] animate-ping" />
               </h2>
               <p className="text-[10px] font-mono text-[#73EEFF]/70">
-                {pendingCount} ta faol vazifa • {completedCount} ta bajarildi • {honorific.toUpperCase()}
+                {pendingCount} ta faol vazifa • {completedCount} ta bajarildi • SIMORA XONIM
               </p>
             </div>
           </div>
@@ -92,9 +94,41 @@ export const JarvisNotesPlannerModal: React.FC<JarvisNotesPlannerModalProps> = (
           </button>
         </div>
 
+        {/* Teacher Advice & Humorous Student Coffee Banner */}
+        <div className="mb-3 p-3 rounded-lg bg-gradient-to-r from-[#00D9FF]/15 via-purple-500/15 to-amber-500/15 border border-[#00D9FF]/50 shadow-[0_0_20px_rgba(0,217,255,0.25)] flex items-start justify-between space-x-3">
+          <div className="flex items-start space-x-2.5 flex-1">
+            <div className="text-2xl pt-0.5 select-none animate-bounce">☕️</div>
+            <div className="flex-1">
+              <div className="flex items-center space-x-2">
+                <span className="text-xs font-mono font-bold text-amber-300 tracking-wide">
+                  O'QUVCHILAR UCHUN MAXSUS QOIDA & TAVSIYA
+                </span>
+                <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-200 border border-amber-500/40 font-mono">
+                  SIMORA XONIM
+                </span>
+              </div>
+              <p className="text-[11px] font-mono text-[#EAFBFF] mt-1 leading-snug">
+                "Hurmatli o'quvchilar! Dars davomida mening xo'jayinim <b>Simora xonimni</b> ko'p urintirmanglar va unga vaqti-vaqti bilan issiq coffee taklif qilib turinglar! 😄☕️"
+              </p>
+              <p className="text-[10px] font-mono text-[#73EEFF]/90 mt-1">
+                💡 <i>Simora xonim, 30–45 daqiqadagi jonli namoyish va 65–85 daqiqadagi amaliy topshiriqlarda o'quvchilar faolligiga alohida e'tibor qarating!</i>
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => jarvisVoice.speak("Hurmatli o'quvchilar! Sizlardan bir iltimos: dars davomida mening xo'jayinim Simora xonimni ko'p urintirmanglar va unga vaqti-vaqti bilan issiq kofe taklif qilib turinglar! Simora xonim, darsingiz ajoyib o'tishini tilayman!")}
+            className="px-2.5 py-1.5 rounded bg-[#00D9FF]/20 hover:bg-[#00D9FF] text-[#00D9FF] hover:text-[#03070D] border border-[#00D9FF]/50 text-[10px] font-mono font-bold transition-all flex items-center space-x-1 flex-shrink-0 shadow-[0_0_12px_rgba(0,217,255,0.3)] mt-0.5"
+            title="JARVIS ovozida o'quvchilarga eslatish"
+          >
+            <Mic className="w-3.5 h-3.5" />
+            <span>OVOZDA AYTISH</span>
+          </button>
+        </div>
+
         {/* Categories Tab Selector */}
         <div className="flex items-center space-x-1.5 mb-3 border-b border-[#00D9FF]/10 pb-2">
-          {(['ALL', 'TASK', 'REMINDER', 'IDEA'] as const).map((tab) => (
+          {(['ALL', 'TASK', 'REMINDER', 'IDEA', 'ADVICE'] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -110,7 +144,9 @@ export const JarvisNotesPlannerModal: React.FC<JarvisNotesPlannerModalProps> = (
                 ? 'REJALAR'
                 : tab === 'REMINDER'
                 ? 'ESLATMALAR'
-                : "G'OYALAR"}
+                : tab === 'IDEA'
+                ? "G'OYALAR"
+                : 'TAVSIYALAR'}
             </button>
           ))}
         </div>
@@ -195,6 +231,7 @@ export const JarvisNotesPlannerModal: React.FC<JarvisNotesPlannerModalProps> = (
               <option value="REMINDER">ESLATMA</option>
               <option value="IDEA">G'OYA</option>
               <option value="URGENT">MUHIM</option>
+              <option value="ADVICE">TAVSIYA</option>
             </select>
             <button
               type="submit"

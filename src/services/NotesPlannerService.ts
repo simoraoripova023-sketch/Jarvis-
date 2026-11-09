@@ -1,6 +1,6 @@
 // JARVIS Holographic Voice Notes & Task Planner Service
 
-export type NoteCategory = 'TASK' | 'IDEA' | 'REMINDER' | 'URGENT';
+export type NoteCategory = 'TASK' | 'IDEA' | 'REMINDER' | 'URGENT' | 'ADVICE';
 
 export interface JarvisNoteItem {
   id: string;
@@ -11,9 +11,25 @@ export interface JarvisNoteItem {
   timeStr: string;
 }
 
-const STORAGE_KEY = 'jarvis_holographic_notes_v2';
+const STORAGE_KEY = 'jarvis_holographic_notes_v3';
 
 const DEFAULT_LESSON_TASKS: JarvisNoteItem[] = [
+  {
+    id: 'lesson-coffee-appeal',
+    text: "☕️ O'quvchilarga qoida: Mening xo'jayinim Simora xonimni ko'p urintirmanglar va darsda unga issiq coffee taklif qilinglar! 😄☕️",
+    category: 'URGENT',
+    completed: false,
+    timestamp: new Date().toISOString(),
+    timeStr: '☕️ Qoida'
+  },
+  {
+    id: 'lesson-advice-simora',
+    text: "💡 Simora xonimga tavsiya: Jonli namoyish (30–45 daq) va amaliy mashqda o'quvchilar faolligini oshiring, real keyslar berib qiziqtiring!",
+    category: 'ADVICE',
+    completed: false,
+    timestamp: new Date().toISOString(),
+    timeStr: '💡 Tavsiya'
+  },
   {
     id: 'lesson-main',
     text: "Soat 20:30 — AI vositalari va vazifaga mos vosita tanlash darsi (90 daqiqa)",

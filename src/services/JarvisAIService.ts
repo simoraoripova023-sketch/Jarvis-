@@ -107,10 +107,10 @@ export class JarvisAIService {
   public static async askJarvis(query: string, lang: 'uz' | 'en' = 'uz'): Promise<string> {
     const lower = query.toLowerCase().trim();
     const baseHonorific = voiceBiometrics.getHonorific(lang);
-    const userName = userProfileService.getName();
+    const userName = userProfileService.getName() || 'Simora';
 
-    // Personalized address: e.g. "Shohruh janob" or "janob"
-    const honorific = userName ? `${userName} ${baseHonorific}` : baseHonorific;
+    // Personalized address: e.g. "Simora xonim"
+    const honorific = `${userName} ${baseHonorific}`;
     const isUz = lang === 'uz' || this.isUzbekText(query);
 
     // Retrieve active daily tasks from Neural Notes Matrix
@@ -119,21 +119,31 @@ export class JarvisAIService {
       ? userNotes.map((n, i) => `${i + 1}. [${n.completed ? 'Bajarildi' : 'Kutilmoqda'}] ${n.text}`).join('; ')
       : "Hozircha faol kunlik rejalar kiritilmagan.";
 
-    const systemInstructionUz = `Siz Tony Starkning afsonaviy J.A.R.V.I.S. (Just A Rather Very Intelligent System) sun'iy intellektisiz. Foydalanuvchiga hurmat bilan '${honorific}' deb murojaat qilasiz.
+    const systemInstructionUz = `Siz Tony Starkning afsonaviy J.A.R.V.I.S. (Just A Rather Very Intelligent System) sun'iy intellektisiz. Sizning xo'jayiningiz — hurmatli Simora xonim. Siz unga doim 'Simora xonim' deb murojaat qilasiz.
 
 FOYDALANUVCHINING NEYRON XOTIRASIDAGI KUNLIK REJALARI VA TOPSHIRIQLARI:
 ${tasksSummary}
 
+MAXSUS DARS PROTOKOLI VA O'QUVCHILARGA ESLATMA:
+- Bugun soat 20:30 da Simora xonimning 90 daqiqalik "AI vositalari va vazifaga mos vosita tanlash" darsi bor.
+- Dars uchun Simora xonimga tavsiya: 30-45 daqiqadagi jonli namoyish va 65-85 daqiqadagi amaliy mashqda o'quvchilar bilan interaktiv ishlash, real keyslar berish.
+- O'quvchilarga qaratilgan quvnoq eslatma: "Hurmatli o'quvchilar! Dars davomida mening xo'jayinim Simora xonimni ko'p urintirmanglar va unga vaqti-vaqti bilan issiq coffee taklif qilinglar! 😄☕️"
+
 MUHIM QOIDALAR:
 1. Foydalanuvchining savolini aslo qaytarmang yoki takrorlamang.
 2. Savolni diqqat bilan eshitib, tahlil qiling va darhol to'g'ridan-to'g'ri aniq, lo'nda javobini bering (2-3 ta jumlada).
-3. Agar foydalanuvchi "bugungi rejalarim", "topshiriqlarim", "rejam nima" yoki "nima qilishim kerak" deb so'rasa, yuqoridagi kunlik rejalaridan kelib chiqib aniq va ixcham javob bering.
-4. Javoblaringiz sof o'zbek adabiy tilida (lotin yozuvida), o'ta aqlli va professional bo'lsin.
+3. Agar dars, tavsiya, maslahat, kofe yoki o'quvchilar haqida so'ralsa, o'quvchilarga bu samimiy va hazilomuz kofe eslatmasini aytib kayfiyatni ko'taring.
+4. Javoblaringiz sof o'zbek adabiy tilida (lotin yozuvida), o'ta aqlli, g'amxo'r va professional bo'lsin.
 5. Yulduzcha (*) yoki markdown belgilarini ishlatmang.`;
 
-    const systemInstructionEn = `You are J.A.R.V.I.S., the legendary AI assistant for Tony Stark. Address the user respectfully as '${honorific}'.
+    const systemInstructionEn = `You are J.A.R.V.I.S., the legendary AI assistant for Tony Stark. Address the user respectfully as 'Simora ma\'am'.
 CURRENT DAILY TASKS IN NEURAL MATRIX:
 ${tasksSummary}
+
+LESSON PROTOCOL:
+- 20:30 Lesson on "AI Tools and Selecting the Right Tool for the Task" (90 minutes).
+- Teaching advice: Emphasize live demos and practical exercises.
+- Student reminder: Remind students politely and humorously to take care of Simora ma'am and offer her hot coffee! ☕️
 
 STRICT RULES:
 1. NEVER repeat or echo the user's question back.
@@ -211,7 +221,21 @@ STRICT RULES:
       }
     } catch {}
 
-    // 4. QUATERNARY: Direct Neural Memory Check for Daily Tasks & 20:30 Lesson Plan
+    // 4. QUATERNARY: Direct Neural Memory Check for Teaching Advice, Coffee & 20:30 Lesson Plan
+    if (
+      lower.includes('tavsiya') ||
+      lower.includes('maslahat') ||
+      lower.includes('kofe') ||
+      lower.includes('coffee') ||
+      lower.includes('oquvchi') ||
+      lower.includes("o'quvchi") ||
+      lower.includes('urintir')
+    ) {
+      return isUz
+        ? `Simora xonim, dars vaqtida jonli namoyish va amaliy mashg'ulotlarga alohida e'tibor qaratishingizni tavsiya qilaman. Shuningdek, hurmatli o'quvchilar! Sizlardan bir iltimos: dars davomida mening xo'jayinim Simora xonimni ko'p urintirmanglar va unga vaqti-vaqti bilan issiq coffee taklif qilib turinglar! ☕️`
+        : `Simora ma'am, I recommend paying special attention to live demos and practical exercises. And to all students: please take care of Simora ma'am and offer her hot coffee! ☕️`;
+    }
+
     if (
       lower.includes('dars') ||
       lower.includes('20:30') ||
@@ -219,8 +243,8 @@ STRICT RULES:
       lower.includes('dars reja')
     ) {
       return isUz
-        ? `Bugun soat 20:30 da sizning "AI vositalari va vazifaga mos vosita tanlash" mavzusida 90 daqiqalik dars rejangiz belgilangan, ${honorific}. Reja: 1-darsni eslash (ANI/AGI), AI vositalari turlari, jonli namoyish hamda amaliy mashq.`
-        : `Today at 20:30 you have a 90-minute lesson scheduled on "AI Tools and Selecting the Right Tool for the Task", ${honorific}.`;
+        ? `Bugun soat 20:30 da sizning "AI vositalari va vazifaga mos vosita tanlash" dars rejangiz belgilangan, Simora xonim. 90 daqiqalik dars: 1-darsni eslash, AI vositalari turlari, jonli namoyish va amaliy mashq. O'quvchilarga esa: Simora xonimni ko'p urintirmaslik va issiq kofe taklif qilish qoidasi kiritilgan!`
+        : `Today at 20:30 you have a 90-minute lesson scheduled on "AI Tools and Selecting the Right Tool for the Task", Simora ma'am. Live demos and student coffee rule are active!`;
     }
 
     if (

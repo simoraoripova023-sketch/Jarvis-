@@ -366,8 +366,8 @@ class JarvisVoiceService {
   public announceDailyTasks() {
     const isUz = this.currentLanguage === 'uz';
     const baseHonorific = voiceBiometrics.getHonorific(isUz ? 'uz' : 'en');
-    const userName = userProfileService.getName();
-    const honorific = userName ? `${userName} ${baseHonorific}` : baseHonorific;
+    const userName = userProfileService.getName() || 'Simora';
+    const honorific = `${userName} ${baseHonorific}`;
 
     const notes = notesPlannerService.getNotes();
     const pending = notes.filter((n) => !n.completed);
@@ -378,10 +378,9 @@ class JarvisVoiceService {
         ? `Barcha kunlik topshiriqlar bajarilgan, ${honorific}. Bugungi rejalaringiz ro'yxati toza.`
         : `All daily tasks have been completed, ${honorific}. Your schedule is clear today.`;
     } else {
-      const taskList = pending.slice(0, 3).map((n, i) => `${i + 1}-topshiriq: ${n.text}`).join('. ');
       message = isUz
-        ? `Bugungi rejalaringiz, ${honorific}: sizda ${pending.length} ta faol topshiriq mavjud. ${taskList}.`
-        : `Here are your daily tasks, ${honorific}: you have ${pending.length} active tasks. ${taskList}.`;
+        ? `Simora xonim, bugun soat 20:30 da AI vositalari bo'yicha 90 daqiqalik darsingiz belgilangan. Jonli namoyish va amaliy mashg'ulotlarga alohida e'tibor qaratishingizni tavsiya qilaman. Shuningdek, o'quvchilaringizga eslatma kiritildi: darsda Simora xonimni ko'p urintirmaslik va vaqti-vaqti bilan issiq kofe taklif qilib turish!`
+        : `Simora ma'am, today at 20:30 you have your 90-minute AI tools lesson. I recommend emphasizing the live demos and interactive exercises. Also, a friendly reminder has been set for your students: please take care of Simora ma'am and offer her hot coffee!`;
     }
 
     this.speak(message);
@@ -415,17 +414,23 @@ class JarvisVoiceService {
 
     const isUz = this.currentLanguage === 'uz';
     const baseHonorific = voiceBiometrics.getHonorific(isUz ? 'uz' : 'en');
-    const userName = userProfileService.getName();
-    const honorific = userName ? `${userName} ${baseHonorific}` : baseHonorific;
+    const userName = userProfileService.getName() || 'Simora';
+    const honorific = `${userName} ${baseHonorific}`;
 
-    const task = pending[Math.floor(Math.random() * pending.length)];
+    const remindersList = [
+      `Simora xonim, dars vaqtida jonli namoyish va amaliy mashqlarda talabalar faolligiga e'tibor qarating. O'quvchilarga esa sizga issiq coffee taklif qilishlarini eslatib qo'ydim! ☕️`,
+      `Eslatma, ${honorific}: Bugungi 20:30 darsingiz yaqinlashmoqda. AI vositalari va jonli namoyish tayyorligini ko'zdan kechirishingizni tavsiya qilaman.`,
+      `Hurmatli o'quvchilar! JARVIS protokoli: Darsda mening xo'jayinim Simora xonimni ko'p urintirmanglar va unga issiq kofe taklif qilinglar! ☕️`,
+      `Eslatma, ${honorific}: Bugungi rejalaringizdan "${pending[0].text}" vazifasi kutilmoqda.`
+    ];
+
     const reminder = isUz
-      ? `Eslatma, ${honorific}: Bugungi rejalaringizdan "${task.text}" topshirig'i hali kutilmoqda.`
-      : `Reminder, ${honorific}: Your task "${task.text}" is still pending.`;
+      ? remindersList[Math.floor(Math.random() * remindersList.length)]
+      : `Reminder, ${honorific}: Today at 20:30 you have your AI lesson. And remember students: take good care of Simora ma'am!`;
 
     this.speak(reminder);
     if (this.onResponseCallback) {
-      this.onResponseCallback(reminder, "Rejalar eslatmasi");
+      this.onResponseCallback(reminder, "Dars va kofe eslatmasi");
     }
   }
 
@@ -892,6 +897,24 @@ class JarvisVoiceService {
         : `Opening your holographic notes and task planner, ${honorific}. You have ${activeCount} active tasks remaining.`;
       actionTaken = 'OPEN_NOTES';
     } else if (
+      input.includes('tavsiya') ||
+      input.includes('maslahat') ||
+      input.includes('kofe') ||
+      input.includes('coffee') ||
+      input.includes('oquvchi') ||
+      input.includes("o'quvchi") ||
+      input.includes('urintir')
+    ) {
+      if (this.actions.onOpenNotesModal) {
+        this.actions.onOpenNotesModal();
+      } else {
+        notesPlannerService.openModal();
+      }
+      reply = isUz
+        ? `Simora xonim, dars vaqtida jonli namoyish va amaliy mashg'ulotlarga alohida e'tibor qaratishingizni tavsiya qilaman. Shuningdek, hurmatli o'quvchilar! Sizlardan bir iltimos: dars davomida mening xo'jayinim Simora xonimni ko'p urintirmanglar va unga vaqti-vaqti bilan issiq coffee taklif qilib turinglar! ☕️`
+        : `Simora ma'am, I recommend paying special attention to the live demo and practical exercises during your lesson. And to all students: please take care of my boss Simora ma'am, don't exhaust her, and offer her some hot coffee from time to time!`;
+      actionTaken = 'TEACHER_ADVICE_COFFEE';
+    } else if (
       input.includes('dars') ||
       input.includes('darsim') ||
       input.includes('20:30')
@@ -902,8 +925,8 @@ class JarvisVoiceService {
         notesPlannerService.openModal();
       }
       reply = isUz
-        ? `Bugun soat 20:30 da "AI vositalari va vazifaga mos vosita tanlash" darsi belgilangan, ${honorific}. Davomiyligi 90 daqiqa: 1-darsni eslash, AI vositalari turlari, jonli namoyish hamda amaliy mashqlar o'tiladi.`
-        : `Today at 20:30 you have a 90-minute lesson on "AI Tools and Selecting the Right Tool for the Task", ${honorific}.`;
+        ? `Bugun soat 20:30 da "AI vositalari va vazifaga mos vosita tanlash" darsingiz belgilangan, Simora xonim! Davomiyligi 90 daqiqa: 1-darsni eslash, AI vositalari turlari, jonli namoyish hamda amaliy mashqlar o'tiladi. O'quvchilarga esa: Simora xonimni darsda ko'p urintirmaslik va issiq kofe taklif qilish qoidasi kiritildi!`
+        : `Today at 20:30 you have your 90-minute AI tools lesson, Simora ma'am! I have also reminded students to take great care of you and offer hot coffee!`;
       actionTaken = 'SHOW_LESSON_PLAN';
     }
 

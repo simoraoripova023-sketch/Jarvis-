@@ -19,13 +19,13 @@ class VoiceBiometricsService {
   private animationFrameId: number | null = null;
 
   private currentData: VoiceBiometricData = {
-    pitchHz: 130,
-    detectedGender: 'MALE',
-    honorificUz: 'janob',
-    honorificEn: 'sir',
-    confidence: 0.85,
+    pitchHz: 215,
+    detectedGender: 'FEMALE',
+    honorificUz: 'xonim',
+    honorificEn: "ma'am",
+    confidence: 0.95,
     isVoiceActive: false,
-    manualOverride: 'AUTO'
+    manualOverride: 'FEMALE'
   };
 
   private pitchHistory: number[] = [];
