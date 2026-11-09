@@ -109,9 +109,45 @@ class NotesPlannerService {
   private listeners: ((notes: JarvisNoteItem[]) => void)[] = [];
   private isModalOpen: boolean = false;
   private modalListeners: ((isOpen: boolean) => void)[] = [];
+  private isCloudSynced: boolean = false;
 
   constructor() {
     this.loadNotes();
+    this.syncWithSupabase();
+    // Periodic background sync with Supabase cloud
+    if (typeof window !== 'undefined') {
+      window.setInterval(() => {
+        this.syncWithSupabase();
+      }, 30000);
+    }
+  }
+
+  public async syncWithSupabase() {
+    if (typeof window === 'undefined') return;
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2500);
+      const res = await fetch('http://127.0.0.1:4321/supabase/tasks', {
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data && Array.isArray(data.tasks) && data.tasks.length > 0) {
+          this.notes = data.tasks;
+          this.isCloudSynced = true;
+          this.saveNotes();
+          this.notify();
+        }
+      }
+    } catch {
+      // Offline fallback: keep local notes
+    }
+  }
+
+  public getIsCloudSynced(): boolean {
+    return this.isCloudSynced;
   }
 
   private loadNotes() {
@@ -154,6 +190,16 @@ class NotesPlannerService {
     this.notes = [newNote, ...this.notes];
     this.saveNotes();
     this.notify();
+
+    // Sync to Supabase in background
+    try {
+      fetch('http://127.0.0.1:4321/supabase/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newNote)
+      }).catch(() => {});
+    } catch {}
+
     return newNote;
   }
 
@@ -163,12 +209,30 @@ class NotesPlannerService {
     );
     this.saveNotes();
     this.notify();
+
+    // Sync to Supabase in background
+    try {
+      fetch('http://127.0.0.1:4321/supabase/tasks/toggle', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
+      }).catch(() => {});
+    } catch {}
   }
 
   public deleteNote(id: string) {
     this.notes = this.notes.filter((n) => n.id !== id);
     this.saveNotes();
     this.notify();
+
+    // Sync to Supabase in background
+    try {
+      fetch('http://127.0.0.1:4321/supabase/tasks/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
+      }).catch(() => {});
+    } catch {}
   }
 
   public clearAll() {

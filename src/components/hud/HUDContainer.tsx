@@ -216,6 +216,20 @@ export const HUDContainer: React.FC<HUDContainerProps> = ({
                 </span>
               </div>
 
+              {/* Supabase Cloud Database Indicator */}
+              <div className="flex justify-between items-center text-[#73EEFF]/90 pt-1 border-t border-[#00D9FF]/10 text-[10px]">
+                <div className="flex items-center space-x-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="font-bold flex items-center space-x-1">
+                    <span>☁️</span>
+                    <span>SUPABASE CLOUD:</span>
+                  </span>
+                </div>
+                <span className="text-emerald-300 font-bold">
+                  ONLINE (unncxmxm)
+                </span>
+              </div>
+
               {/* Laptop Battery & Power Status */}
               <div className="flex justify-between items-center text-[#73EEFF]/90 pt-1 border-t border-[#00D9FF]/10">
                 <div className="flex items-center space-x-1.5">

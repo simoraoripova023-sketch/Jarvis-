@@ -6,8 +6,22 @@ const { exec } = require('child_process');
 const os = require('os');
 const fs = require('fs');
 const path = require('path');
+const { Pool } = require('pg');
 
 const PORT = 4321;
+
+// Supabase PostgreSQL Cloud Pool
+const SUPABASE_DB_URL = 'postgresql://postgres.unncxmxmcrknulznfcpx:Simoraoripova19@aws-0-ap-northeast-1.pooler.supabase.com:5432/postgres';
+let pgPool = null;
+try {
+  pgPool = new Pool({
+    connectionString: SUPABASE_DB_URL,
+    ssl: { rejectUnauthorized: false }
+  });
+  console.log('[JARVIS SUPABASE] Cloud PostgreSQL Pool initialized.');
+} catch (e) {
+  console.error('[JARVIS SUPABASE] Pool error:', e.message);
+}
 
 // Allowed CORS & Private Network Access Origin
 const setCorsHeaders = (res) => {
@@ -213,6 +227,101 @@ const server = http.createServer(async (req, res) => {
       } catch (parseErr) {
         res.writeHead(400, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: false, error: 'Invalid JSON body' }));
+      }
+    });
+    return;
+  }
+
+  // 3. Supabase Cloud Sync: GET Tasks
+  if (req.method === 'GET' && req.url === '/supabase/tasks') {
+    if (!pgPool) {
+      res.writeHead(503, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Supabase pool not ready' }));
+      return;
+    }
+    try {
+      const result = await pgPool.query(`
+        SELECT id, text, category, completed, time_str as "timeStr", created_at as "timestamp"
+        FROM public.jarvis_tasks
+        ORDER BY created_at ASC
+      `);
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ success: true, tasks: result.rows }));
+    } catch (dbErr) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ success: false, error: dbErr.message }));
+    }
+    return;
+  }
+
+  // 4. Supabase Cloud Sync: UPSERT Task
+  if (req.method === 'POST' && req.url === '/supabase/tasks') {
+    let body = '';
+    req.on('data', (chunk) => { body += chunk; });
+    req.on('end', async () => {
+      try {
+        const item = JSON.parse(body || '{}');
+        if (!item.id || !item.text) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Missing id or text' }));
+          return;
+        }
+        await pgPool.query(`
+          INSERT INTO public.jarvis_tasks (id, text, category, completed, time_str, updated_at)
+          VALUES ($1, $2, $3, $4, $5, NOW())
+          ON CONFLICT (id) DO UPDATE
+          SET text = EXCLUDED.text,
+              category = EXCLUDED.category,
+              completed = EXCLUDED.completed,
+              time_str = EXCLUDED.time_str,
+              updated_at = NOW()
+        `, [item.id, item.text, item.category || 'TASK', item.completed || false, item.timeStr || '']);
+
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true }));
+      } catch (err) {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: err.message }));
+      }
+    });
+    return;
+  }
+
+  // 5. Supabase Cloud Sync: TOGGLE Task
+  if (req.method === 'POST' && req.url === '/supabase/tasks/toggle') {
+    let body = '';
+    req.on('data', (chunk) => { body += chunk; });
+    req.on('end', async () => {
+      try {
+        const { id } = JSON.parse(body || '{}');
+        await pgPool.query(`
+          UPDATE public.jarvis_tasks
+          SET completed = NOT completed, updated_at = NOW()
+          WHERE id = $1
+        `, [id]);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true }));
+      } catch (err) {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: err.message }));
+      }
+    });
+    return;
+  }
+
+  // 6. Supabase Cloud Sync: DELETE Task
+  if (req.method === 'POST' && req.url === '/supabase/tasks/delete') {
+    let body = '';
+    req.on('data', (chunk) => { body += chunk; });
+    req.on('end', async () => {
+      try {
+        const { id } = JSON.parse(body || '{}');
+        await pgPool.query(`DELETE FROM public.jarvis_tasks WHERE id = $1`, [id]);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true }));
+      } catch (err) {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: err.message }));
       }
     });
     return;

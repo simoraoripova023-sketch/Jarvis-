@@ -81,8 +81,13 @@ export const JarvisNotesPlannerModal: React.FC<JarvisNotesPlannerModalProps> = (
                 <span>J.A.R.V.I.S. // OVOZLI QAYDLAR VA REJALAR</span>
                 <span className="w-2 h-2 rounded-full bg-[#00D9FF] animate-ping" />
               </h2>
-              <p className="text-[10px] font-mono text-[#73EEFF]/70">
-                {pendingCount} ta faol vazifa • {completedCount} ta bajarildi • SIMORA XONIM
+              <p className="text-[10px] font-mono text-[#73EEFF]/70 flex items-center space-x-2">
+                <span>{pendingCount} ta faol vazifa • {completedCount} ta bajarildi</span>
+                <span>•</span>
+                <span className="text-emerald-400 font-bold flex items-center space-x-1">
+                  <span>☁️</span>
+                  <span>SUPABASE CLOUD: ULANGAN</span>
+                </span>
               </p>
             </div>
           </div>
