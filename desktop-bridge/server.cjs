@@ -253,14 +253,14 @@ const server = http.createServer(async (req, res) => {
 
         // Action: Screen Brightness
         if (action === 'BRIGHTNESS_UP') {
-          exec("powershell -NoProfile -Command \"(Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightnessMethods).WmiSetBrightness(1, 90)\"", () => {});
+          exec("powershell -NoProfile -Command \"(Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightnessMethods).WmiSetBrightness(1, 90)\"", () => { });
           res.writeHead(200, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({ success: true, message: 'Ekran yorqinligi oshirildi' }));
           return;
         }
 
         if (action === 'BRIGHTNESS_DOWN') {
-          exec("powershell -NoProfile -Command \"(Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightnessMethods).WmiSetBrightness(1, 40)\"", () => {});
+          exec("powershell -NoProfile -Command \"(Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightnessMethods).WmiSetBrightness(1, 40)\"", () => { });
           res.writeHead(200, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({ success: true, message: 'Ekran yorqinligi pasaytirildi' }));
           return;
@@ -277,7 +277,7 @@ const server = http.createServer(async (req, res) => {
             $notify.Visible = $true;
             $notify.ShowBalloonTip(4000, "${title}", "${msg}", [System.Windows.Forms.ToolTipIcon]::Info);
           `;
-          exec(`powershell -NoProfile -Command "${psNotify.replace(/\r?\n/g, ' ')}"`, () => {});
+          exec(`powershell -NoProfile -Command "${psNotify.replace(/\r?\n/g, ' ')}"`, () => { });
           res.writeHead(200, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({ success: true, message: 'Xabarnoma yuborildi' }));
           return;
@@ -415,6 +415,53 @@ const server = http.createServer(async (req, res) => {
       }
     });
     return;
+  }
+
+  // 7. High-Fidelity Uzbek Neural Speech Synthesis (Edge TTS)
+  if (req.method === 'GET' && req.url.startsWith('/tts')) {
+    const urlObj = new URL(req.url, 'http://127.0.0.1:4321');
+    const text = urlObj.searchParams.get('text');
+    const voice = urlObj.searchParams.get('voice') || 'uz-UZ-SardorNeural';
+
+    if (!text || !text.trim()) {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Text parameter required' }));
+      return;
+    }
+
+    try {
+      const { EdgeTTS } = require('node-edge-tts');
+      const tts = new EdgeTTS({
+        voice,
+        lang: 'uz-UZ',
+        outputFormat: 'audio-24khz-48kbitrate-mono-mp3'
+      });
+
+      const tempFile = path.join(os.tmpdir(), `jarvis_tts_${Date.now()}_${Math.random().toString(36).substring(7)}.mp3`);
+      await tts.ttsPromise(text.trim(), tempFile);
+
+      if (fs.existsSync(tempFile)) {
+        const stat = fs.statSync(tempFile);
+        res.writeHead(200, {
+          'Content-Type': 'audio/mpeg',
+          'Content-Length': stat.size,
+          'Cache-Control': 'no-cache'
+        });
+        const readStream = fs.createReadStream(tempFile);
+        readStream.pipe(res);
+        readStream.on('close', () => {
+          try { fs.unlinkSync(tempFile); } catch {}
+        });
+        return;
+      } else {
+        throw new Error('TTS fayl yaratilmadi');
+      }
+    } catch (ttsErr) {
+      console.error('[TTS ERROR]', ttsErr.message);
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: ttsErr.message }));
+      return;
+    }
   }
 
   res.writeHead(404, { 'Content-Type': 'text/plain' });

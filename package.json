@@ -12,7 +12,9 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.119.0",
     "@types/pg": "^8.23.1",
+    "edge-tts-universal": "^1.4.0",
     "lucide-react": "^0.344.0",
+    "node-edge-tts": "^1.2.12",
     "pg": "^8.23.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

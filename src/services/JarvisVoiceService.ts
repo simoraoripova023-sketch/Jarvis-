@@ -3,7 +3,7 @@ import { batteryService } from './BatteryService';
 import { weatherService } from './WeatherService';
 import { timerService } from './TimerService';
 import { musicPlayer } from './MusicPlayerService';
-import { JarvisAIService } from './JarvisAIService';
+import { JarvisAIService, normalizeUzbekText } from './JarvisAIService';
 import { voiceBiometrics } from './VoiceBiometricsService';
 import { notesPlannerService } from './NotesPlannerService';
 import { userProfileService } from './UserProfileService';
@@ -252,96 +252,139 @@ class JarvisVoiceService {
     }
   }
 
-  public speak(text: string, onEnd?: () => void) {
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+  public async speak(text: string, onEnd?: () => void) {
+    if (typeof window === 'undefined') {
       if (onEnd) onEnd();
       return;
     }
 
+    const isUz = this.currentLanguage === 'uz' || JarvisAIService.isUzbekText(text);
+
+    // Stop any ongoing speech or audio
+    NeuralVoiceCloneService.stopVoice();
+
+    // 1. PRIMARY: Try Desktop Bridge Authentic Neural Uzbek Voice (uz-UZ-SardorNeural)
     try {
-      window.speechSynthesis.cancel();
-
-      const phoneticText = NeuralVoiceCloneService.cleanUzbekPhonetics(text);
-      const utterance = new SpeechSynthesisUtterance(phoneticText);
-
-      // Calibrated to "Aqlli Yusuf" Acoustic Profile (96.4 Hz Warm Storyteller Baritone)
-      utterance.rate = 0.94; // Calm, respectful storytelling cadence
-      utterance.pitch = 0.82; // Deep, rich baritone fundamental frequency (~96 Hz)
-
-      const voices = window.speechSynthesis.getVoices();
-      const isUz = this.currentLanguage === 'uz' || JarvisAIService.isUzbekText(text);
-
-      let selectedVoice = null;
-
-      if (isUz) {
-        selectedVoice = voices.find(
-          (v) =>
-            (v.lang.startsWith('uz') || v.lang.startsWith('tr') || v.lang.startsWith('ru')) &&
-            (v.name.includes('Male') || v.name.includes('David') || v.name.includes('Google') || v.name.includes('Sardor'))
-        ) || voices.find(
-          (v) => v.name.includes('UK English Male') || v.name.includes('David') || v.name.includes('George') || v.name.includes('Male')
-        );
-      } else {
-        selectedVoice = voices.find(
-          (v) =>
-            v.name.includes('UK English Male') ||
-            v.name.includes('Google UK English Male') ||
-            v.name.includes('David') ||
-            v.name.includes('George') ||
-            v.name.includes('Daniel') ||
-            v.lang.startsWith('en')
-        );
-      }
-
-      if (selectedVoice) {
-        utterance.voice = selectedVoice;
-      }
-
-      utterance.onstart = () => {
+      const neuralAudio = await NeuralVoiceCloneService.synthesizeNeuralVoice(text, isUz ? 'uz' : 'en');
+      if (neuralAudio) {
         this.isSpeaking = true;
         this.notifyStatus('speaking');
-        // Temporarily pause speech recognition while JARVIS speaks through speakers
+
         if (this.recognition && this.isListening) {
-          try {
-            this.recognition.abort();
-          } catch {}
+          try { this.recognition.abort(); } catch {}
         }
-      };
 
-      utterance.onend = () => {
-        this.isSpeaking = false;
-        this.lastSpeechEndTime = Date.now();
-        this.notifyStatus(this.isListening ? 'listening' : 'idle');
+        NeuralVoiceCloneService.playWithYusufEqualizer(
+          neuralAudio,
+          () => {
+            this.isSpeaking = true;
+            this.notifyStatus('speaking');
+          },
+          () => {
+            this.isSpeaking = false;
+            this.lastSpeechEndTime = Date.now();
+            this.notifyStatus(this.isListening ? 'listening' : 'idle');
 
-        // Allow 600ms for room acoustic echo to dissipate before resuming microphone listening
-        setTimeout(() => {
-          if (this.isListening && this.recognition && !this.isSpeaking) {
+            setTimeout(() => {
+              if (this.isListening && this.recognition && !this.isSpeaking) {
+                try { this.recognition.start(); } catch {}
+              }
+            }, 600);
+
+            if (onEnd) onEnd();
+          }
+        );
+        return;
+      }
+    } catch {}
+
+    // 2. SECONDARY FALLBACK: Browser Web SpeechSynthesis
+    if ('speechSynthesis' in window) {
+      try {
+        window.speechSynthesis.cancel();
+
+        const phoneticText = NeuralVoiceCloneService.cleanUzbekPhonetics(text);
+        const utterance = new SpeechSynthesisUtterance(phoneticText);
+
+        utterance.rate = 0.94;
+        utterance.pitch = 0.82;
+
+        const voices = window.speechSynthesis.getVoices();
+
+        let selectedVoice = null;
+
+        if (isUz) {
+          selectedVoice = voices.find(
+            (v) =>
+              (v.lang.startsWith('uz') || v.lang.startsWith('tr'))
+          ) || voices.find(
+            (v) => v.lang.startsWith('ru')
+          ) || voices.find(
+            (v) => v.name.includes('David') || v.lang.startsWith('en')
+          );
+        } else {
+          selectedVoice = voices.find(
+            (v) =>
+              v.name.includes('UK English Male') ||
+              v.name.includes('Google UK English Male') ||
+              v.name.includes('David') ||
+              v.name.includes('George') ||
+              v.name.includes('Daniel') ||
+              v.lang.startsWith('en')
+          );
+        }
+
+        if (selectedVoice) {
+          utterance.voice = selectedVoice;
+        }
+
+        utterance.onstart = () => {
+          this.isSpeaking = true;
+          this.notifyStatus('speaking');
+          if (this.recognition && this.isListening) {
+            try {
+              this.recognition.abort();
+            } catch {}
+          }
+        };
+
+        utterance.onend = () => {
+          this.isSpeaking = false;
+          this.lastSpeechEndTime = Date.now();
+          this.notifyStatus(this.isListening ? 'listening' : 'idle');
+
+          setTimeout(() => {
+            if (this.isListening && this.recognition && !this.isSpeaking) {
+              try {
+                this.recognition.start();
+              } catch {}
+            }
+          }, 600);
+
+          if (onEnd) onEnd();
+        };
+
+        utterance.onerror = () => {
+          this.isSpeaking = false;
+          this.lastSpeechEndTime = Date.now();
+          this.notifyStatus(this.isListening ? 'listening' : 'idle');
+          if (this.isListening && this.recognition) {
             try {
               this.recognition.start();
             } catch {}
           }
-        }, 600);
+          if (onEnd) onEnd();
+        };
 
-        if (onEnd) onEnd();
-      };
-
-      utterance.onerror = () => {
+        window.speechSynthesis.speak(utterance);
+        return;
+      } catch {
         this.isSpeaking = false;
-        this.lastSpeechEndTime = Date.now();
-        this.notifyStatus(this.isListening ? 'listening' : 'idle');
-        if (this.isListening && this.recognition) {
-          try {
-            this.recognition.start();
-          } catch {}
-        }
         if (onEnd) onEnd();
-      };
-
-      window.speechSynthesis.speak(utterance);
-    } catch {
-      this.isSpeaking = false;
-      if (onEnd) onEnd();
+      }
     }
+
+    if (onEnd) onEnd();
   }
 
   public openExternalLink(url: string, title: string): boolean {
@@ -437,8 +480,8 @@ class JarvisVoiceService {
 
   // Universal Command & Natural Language Engine
   public async processVoiceCommand(rawInput: string): Promise<{ reply: string; actionTaken?: string; launchUrl?: { url: string; title: string } }> {
-    const input = rawInput.toLowerCase().trim();
-    const isUz = this.currentLanguage === 'uz' || JarvisAIService.isUzbekText(input);
+    const input = normalizeUzbekText(rawInput).trim();
+    const isUz = this.currentLanguage === 'uz' || JarvisAIService.isUzbekText(rawInput) || JarvisAIService.isUzbekText(input);
     const baseHonorific = voiceBiometrics.getHonorific(isUz ? 'uz' : 'en');
     const userName = userProfileService.getName();
     const honorific = userName ? `${userName} ${baseHonorific}` : baseHonorific;

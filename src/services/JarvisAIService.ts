@@ -25,17 +25,63 @@ export const setStoredGeminiKey = (key: string) => {
   }
 };
 
+// Universal Uzbek text and phonetic normalizer (handles Cyrillic, Turkish keyboard, and speech misrecognitions)
+export function normalizeUzbekText(rawText: string): string {
+  if (!rawText) return '';
+  let str = rawText.toLowerCase();
+
+  // 1. Cyrillic Uzbek to Latin
+  const cyrMap: Record<string, string> = {
+    'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'yo', 'ж': 'j', 'з': 'z',
+    'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm', 'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r',
+    'с': 's', 'т': 't', 'у': 'u', 'ф': 'f', 'х': 'x', 'ҳ': 'h', 'ц': 'ts', 'ч': 'ch', 'ш': 'sh',
+    'щ': 'sh', 'ъ': "'", 'ы': 'i', 'э': 'e', 'ю': 'yu', 'я': 'ya', 'ў': "o'", 'ғ': "g'", 'қ': 'q'
+  };
+  str = str.replace(/[а-яёўғҳқ]/gi, (c) => cyrMap[c.toLowerCase()] || c);
+
+  // 2. Turkish/Azeri keyboard layout variations
+  str = str
+    .replace(/ş/g, 'sh')
+    .replace(/ç/g, 'ch')
+    .replace(/ğ/g, "g'")
+    .replace(/ı/g, 'i')
+    .replace(/ö/g, "o'")
+    .replace(/ü/g, 'u');
+
+  // 3. Apostrophes
+  str = str.replace(/[’‘`ʻʼ]/g, "'");
+
+  // 4. Common speech recognition variations
+  str = str
+    .replace(/\bsaom\b/g, 'salom')
+    .replace(/\btuşin\b/g, 'tushun')
+    .replace(/\btuşun\b/g, 'tushun')
+    .replace(/\btushin\b/g, 'tushun')
+    .replace(/\btuşinib\b/g, 'tushunib')
+    .replace(/\bgapiriş\b/g, 'gapirish')
+    .replace(/\bgapirishga\b/g, 'gapirish')
+    .replace(/\btushunishga\b/g, 'tushunish')
+    .replace(/\bqiynalyapti\b/g, 'qiynalmoqda')
+    .replace(/\bxojaynim\b/g, "xo'jayinim")
+    .replace(/\bcoofee\b/g, 'kofe')
+    .replace(/\bcoffee\b/g, 'kofe');
+
+  return str;
+}
+
 export class JarvisAIService {
   public static isUzbekText(text: string): boolean {
-    const lower = text.toLowerCase();
+    const lower = normalizeUzbekText(text);
     const uzbekKeywords = [
       'salom', 'qanday', 'nima', 'kim', 'nega', 'qayerda', 'och', 'qo‘y', 'qoy',
       'tushuntir', 'ayt', 'haqida', 'gapir', 'rahmat', 'xayrli', 'tong', 'kech',
       'ob-havo', 'quvvat', 'soat', 'ishla', 'kerak', 'qil', 'dasturlash', 'til',
       'qalesan', 'ahvol', 'maslahat', 'fakt', 'musiqa', 'toshkent', 'suniy', 'kvant', 'qora',
-      'yordam', 'yoz', 'kimsan', 'nimasab', 'ishlar', 'bor', 'nechta', 'bilasanmi'
+      'yordam', 'yoz', 'kimsan', 'nimasab', 'ishlar', 'bor', 'nechta', 'bilasanmi',
+      'tushun', 'dars', 'reja', 'ovoz', 'ekran', 'yorug', 'noutbuk', 'kompyuter',
+      'zaryad', 'batareya', 'xojayin', 'mehribon', 'gamxor', 'kofe'
     ];
-    return uzbekKeywords.some((k) => lower.includes(k));
+    return uzbekKeywords.some((k) => lower.includes(k)) || /[ўғҳқ]/.test(text.toLowerCase());
   }
 
   // Real-time factual knowledge search via Wikipedia with zero rate limits
@@ -163,7 +209,13 @@ STRICT RULES:
     // 1. PRIMARY: Google Gemini Flash Neural Engine
     const apiKey = getStoredGeminiKey();
     if (apiKey) {
-      const modelsToTry = ['gemini-flash-latest', 'gemini-3.8-flash', 'gemini-2.5-flash-lite'];
+      const modelsToTry = [
+        'gemini-3.5-flash-lite',
+        'gemini-3.5-flash',
+        'gemini-3.1-flash-lite',
+        'gemini-3.8-flash',
+        'gemini-flash-latest'
+      ];
       for (const modelName of modelsToTry) {
         try {
           const controller = new AbortController();

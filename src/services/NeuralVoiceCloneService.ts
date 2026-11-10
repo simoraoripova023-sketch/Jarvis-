@@ -1,18 +1,13 @@
 // JARVIS Neural Voice Clone & Speech Synthesis Engine
-// Calibrated to the exact acoustic profile of "Aqlli Yusuf" (96.4 Hz Deep Warm Storyteller Baritone)
+// Calibrated to the exact acoustic profile of "Aqlli Yusuf" & Sardor Neural (Natural Uzbek Baritone)
 
 export class NeuralVoiceCloneService {
   private static currentAudio: HTMLAudioElement | null = null;
+  private static bridgeAvailable: boolean | null = null;
 
   // 1. Phonetic Text Optimization for natural Uzbek speech synthesis
   public static cleanUzbekPhonetics(text: string): string {
     return text
-      .replace(/o['‘`ʻ]/g, 'o')
-      .replace(/g['‘`ʻ]/g, 'g')
-      .replace(/O['‘`ʻ]/g, 'O')
-      .replace(/G['‘`ʻ]/g, 'G')
-      .replace(/sh/gi, 'sh')
-      .replace(/ch/gi, 'ch')
       .replace(/J\.A\.R\.V\.I\.S\./gi, 'Jarvis')
       .replace(/AI/g, 'Ey Ay')
       .replace(/TB\/s/g, 'terabayt sekundiga')
@@ -36,21 +31,36 @@ export class NeuralVoiceCloneService {
 
     try {
       const encodedText = encodeURIComponent(cleanedText);
-      // For English, Brian or Guy voice provides authentic Jarvis tone
-      // For Uzbek, Google Translate TTS endpoint provides clean natural Uzbek pronunciation
-      const streamUrl = lang === 'uz'
-        ? `https://translate.google.com/translate_tts?ie=UTF-8&tl=uz&client=tw-ob&q=${encodedText}`
-        : `https://api.streamelements.com/kappa/v2/speech?voice=Brian&text=${encodedText}`;
 
-      const audio = new Audio(streamUrl);
-      audio.playbackRate = 1.0;
-      return audio;
+      if (lang === 'uz') {
+        // 1. Try Desktop Bridge Uzbek Neural Voice (Microsoft Edge uz-UZ-SardorNeural)
+        try {
+          const testRes = await fetch(`http://127.0.0.1:4321/tts?text=${encodedText}&voice=uz-UZ-SardorNeural`, {
+            method: 'HEAD'
+          }).catch(() => null);
+
+          if (testRes && testRes.ok) {
+            const streamUrl = `http://127.0.0.1:4321/tts?text=${encodedText}&voice=uz-UZ-SardorNeural`;
+            const audio = new Audio(streamUrl);
+            audio.playbackRate = 1.0;
+            return audio;
+          }
+        } catch {}
+
+        // Fallback: If bridge endpoint isn't ready, return null so client falls back to Web Speech
+        return null;
+      } else {
+        const streamUrl = `https://api.streamelements.com/kappa/v2/speech?voice=Brian&text=${encodedText}`;
+        const audio = new Audio(streamUrl);
+        audio.playbackRate = 1.0;
+        return audio;
+      }
     } catch {
       return null;
     }
   }
 
-  // 3. Play voice with Web Audio Equalizer (Bass Resonance at 100Hz + Warmth at 450Hz)
+  // 3. Play voice with Web Audio Equalizer
   public static playWithYusufEqualizer(
     audioElement: HTMLAudioElement,
     onStart?: () => void,
@@ -78,8 +88,13 @@ export class NeuralVoiceCloneService {
     };
 
     audioElement.play().catch(() => {
+      this.currentAudio = null;
       if (onEnd) onEnd();
     });
+  }
+
+  public static isSpeaking(): boolean {
+    return !!this.currentAudio && !this.currentAudio.paused;
   }
 
   public static stopVoice() {
