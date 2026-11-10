@@ -554,11 +554,102 @@ class JarvisVoiceService {
       input.includes('kompyuterni qulfla') ||
       input.includes('ekranni qulfla') ||
       input.includes('kompyuterni blokla') ||
+      input.includes('noutbukni qulfla') ||
       input.includes('lock pc')
     ) {
       actionTaken = 'LOCK_PC';
       desktopBridge.lockPC();
       reply = isUz ? `Tizim qulflanmoqda, ${honorific}.` : `Locking workstation, ${honorific}.`;
+    } else if (
+      input.includes('ovozni baland') ||
+      input.includes('ovozni oshir') ||
+      input.includes('ovozni ko\'tar') ||
+      input.includes('ovozni balandroq') ||
+      input.includes('volume up')
+    ) {
+      actionTaken = 'VOLUME_UP';
+      desktopBridge.volumeUp();
+      reply = isUz ? `Ovoz balandligi oshirildi, ${honorific}.` : `Volume increased, ${honorific}.`;
+    } else if (
+      input.includes('ovozni pasaytir') ||
+      input.includes('ovozni past') ||
+      input.includes('ovozni kamaytir') ||
+      input.includes('volume down')
+    ) {
+      actionTaken = 'VOLUME_DOWN';
+      desktopBridge.volumeDown();
+      reply = isUz ? `Ovoz pasaytirildi, ${honorific}.` : `Volume decreased, ${honorific}.`;
+    } else if (
+      input.includes('ovozni o\'chir') ||
+      input.includes('ovozni ochir') ||
+      input.includes('ovozsiz rejim') ||
+      input.includes('tinchlik') ||
+      input.includes('mute')
+    ) {
+      actionTaken = 'VOLUME_MUTE';
+      desktopBridge.volumeMute();
+      reply = isUz ? `Ovoz o'chirildi, ${honorific}.` : `Audio muted, ${honorific}.`;
+    } else if (
+      input.includes('yorug\'roq') ||
+      input.includes('yoruglikni oshir') ||
+      input.includes('yorug\'likni oshir') ||
+      input.includes('brightness up')
+    ) {
+      actionTaken = 'BRIGHTNESS_UP';
+      desktopBridge.brightnessUp();
+      reply = isUz ? `Ekran yorug'ligi oshirildi, ${honorific}.` : `Brightness increased, ${honorific}.`;
+    } else if (
+      input.includes('xiralashtir') ||
+      input.includes('yoruglikni kamaytir') ||
+      input.includes('yorug\'likni kamaytir') ||
+      input.includes('brightness down')
+    ) {
+      actionTaken = 'BRIGHTNESS_DOWN';
+      desktopBridge.brightnessDown();
+      reply = isUz ? `Ekran yorug'ligi kamaytirildi, ${honorific}.` : `Brightness decreased, ${honorific}.`;
+    } else if (
+      input.includes('zoom') ||
+      input.includes('zum')
+    ) {
+      actionTaken = 'OPEN_ZOOM';
+      desktopBridge.openApp('zoom');
+      reply = isUz ? `Zoom dasturi ishga tushirilmoqda, ${honorific}.` : `Launching Zoom, ${honorific}.`;
+    } else if (
+      input.includes('word') ||
+      input.includes('vord')
+    ) {
+      actionTaken = 'OPEN_WORD';
+      desktopBridge.openApp('word');
+      reply = isUz ? `Microsoft Word ishga tushirilmoqda, ${honorific}.` : `Launching Microsoft Word, ${honorific}.`;
+    } else if (
+      input.includes('excel') ||
+      input.includes('eksel')
+    ) {
+      actionTaken = 'OPEN_EXCEL';
+      desktopBridge.openApp('excel');
+      reply = isUz ? `Microsoft Excel ishga tushirilmoqda, ${honorific}.` : `Launching Microsoft Excel, ${honorific}.`;
+    } else if (
+      input.includes('powerpoint') ||
+      input.includes('power point') ||
+      input.includes('prezentatsiya')
+    ) {
+      actionTaken = 'OPEN_POWERPOINT';
+      desktopBridge.openApp('powerpoint');
+      reply = isUz ? `Microsoft PowerPoint ishga tushirilmoqda, ${honorific}.` : `Launching PowerPoint, ${honorific}.`;
+    } else if (
+      input.includes('kamera') ||
+      input.includes('camera')
+    ) {
+      actionTaken = 'OPEN_CAMERA';
+      desktopBridge.openApp('camera');
+      reply = isUz ? `Noutbuk kamerasi ochildi, ${honorific}.` : `Camera activated, ${honorific}.`;
+    } else if (
+      input.includes('whatsapp') ||
+      input.includes('vatsap')
+    ) {
+      actionTaken = 'OPEN_WHATSAPP';
+      desktopBridge.openApp('whatsapp');
+      reply = isUz ? `WhatsApp ishga tushirildi, ${honorific}.` : `Launching WhatsApp, ${honorific}.`;
     } else if (
       input.includes('desktop') ||
       input.includes('ish stoli') ||

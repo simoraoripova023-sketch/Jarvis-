@@ -12,6 +12,10 @@ export interface DesktopTelemetry {
   usedRamGb: number;
   ramUsagePercent: number;
   uptimeSeconds: number;
+  battery?: {
+    levelPercent: number;
+    isCharging: boolean;
+  };
 }
 
 class DesktopBridgeService {
@@ -135,6 +139,30 @@ class DesktopBridgeService {
 
   public async lockPC() {
     return this.execute('LOCK_PC');
+  }
+
+  public async volumeUp() {
+    return this.execute('VOLUME_UP');
+  }
+
+  public async volumeDown() {
+    return this.execute('VOLUME_DOWN');
+  }
+
+  public async volumeMute() {
+    return this.execute('VOLUME_MUTE');
+  }
+
+  public async brightnessUp() {
+    return this.execute('BRIGHTNESS_UP');
+  }
+
+  public async brightnessDown() {
+    return this.execute('BRIGHTNESS_DOWN');
+  }
+
+  public async showToast(title: string, message: string) {
+    return this.execute('SHOW_TOAST', title, { message });
   }
 
   public async openFolder(folderPath?: string) {

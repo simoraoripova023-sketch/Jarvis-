@@ -48,6 +48,18 @@ const APP_LAUNCH_MAP = {
   edge: 'start msedge',
   spotify: 'start spotify:',
   musiqa: 'start spotify:',
+  zoom: 'start zoom.exe',
+  word: 'start winword.exe',
+  excel: 'start excel.exe',
+  powerpoint: 'start powerpnt.exe',
+  ppt: 'start powerpnt.exe',
+  camera: 'start microsoft.windows.camera:',
+  kamera: 'start microsoft.windows.camera:',
+  whatsapp: 'start whatsapp:',
+  paint: 'start mspaint.exe',
+  youtube: 'start https://youtube.com',
+  mail: 'start mailto:',
+  email: 'start mailto:',
   explorer: 'start explorer.exe',
   desktop: `start explorer.exe "${path.join(os.homedir(), 'OneDrive', 'Desktop')}"`,
   ishstoli: `start explorer.exe "${path.join(os.homedir(), 'OneDrive', 'Desktop')}"`,
@@ -58,6 +70,26 @@ const APP_LAUNCH_MAP = {
   settings: 'start ms-settings:',
   taskmanager: 'start taskmgr.exe'
 };
+
+// Hardware Battery Sensor
+let cachedBattery = { levelPercent: 80, isCharging: true };
+const updateBatteryInfo = () => {
+  exec('powershell -NoProfile -Command "$b = Get-CimInstance Win32_Battery; if ($b) { $b.EstimatedChargeRemaining; $b.BatteryStatus }"', (err, stdout) => {
+    if (!err && stdout && stdout.trim()) {
+      const parts = stdout.trim().split(/\r?\n/);
+      if (parts.length >= 1) {
+        const lvl = parseInt(parts[0], 10);
+        if (!isNaN(lvl)) cachedBattery.levelPercent = lvl;
+      }
+      if (parts.length >= 2) {
+        const st = parseInt(parts[1], 10);
+        cachedBattery.isCharging = st === 2 || st === 6 || st === 7 || st === 8;
+      }
+    }
+  });
+};
+setInterval(updateBatteryInfo, 10000);
+updateBatteryInfo();
 
 // Calculate real CPU usage percentage
 let lastCpuMeasure = os.cpus();
@@ -146,7 +178,8 @@ const server = http.createServer(async (req, res) => {
       totalRamGb: totalMem,
       usedRamGb: usedMem,
       ramUsagePercent: memUsagePercent,
-      uptimeSeconds: Math.round(os.uptime())
+      uptimeSeconds: Math.round(os.uptime()),
+      battery: cachedBattery
     };
 
     res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -190,6 +223,63 @@ const server = http.createServer(async (req, res) => {
             res.writeHead(500, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ success: false, error: err.message }));
           }
+          return;
+        }
+
+        // Action: Volume Control (Up / Down / Mute)
+        if (action === 'VOLUME_UP') {
+          exec("powershell -NoProfile -Command \"$w = New-Object -ComObject WScript.Shell; 1..5 | ForEach-Object { $w.SendKeys([char]175) }\"", (err) => {
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ success: !err, message: 'Ovoz balandlatildi' }));
+          });
+          return;
+        }
+
+        if (action === 'VOLUME_DOWN') {
+          exec("powershell -NoProfile -Command \"$w = New-Object -ComObject WScript.Shell; 1..5 | ForEach-Object { $w.SendKeys([char]174) }\"", (err) => {
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ success: !err, message: 'Ovoz pasaytirildi' }));
+          });
+          return;
+        }
+
+        if (action === 'VOLUME_MUTE') {
+          exec("powershell -NoProfile -Command \"$w = New-Object -ComObject WScript.Shell; $w.SendKeys([char]173)\"", (err) => {
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ success: !err, message: 'Ovoz holati o\'zgartirildi' }));
+          });
+          return;
+        }
+
+        // Action: Screen Brightness
+        if (action === 'BRIGHTNESS_UP') {
+          exec("powershell -NoProfile -Command \"(Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightnessMethods).WmiSetBrightness(1, 90)\"", () => {});
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: true, message: 'Ekran yorqinligi oshirildi' }));
+          return;
+        }
+
+        if (action === 'BRIGHTNESS_DOWN') {
+          exec("powershell -NoProfile -Command \"(Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightnessMethods).WmiSetBrightness(1, 40)\"", () => {});
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: true, message: 'Ekran yorqinligi pasaytirildi' }));
+          return;
+        }
+
+        // Action: Windows Native Notification
+        if (action === 'SHOW_TOAST') {
+          const title = (target || 'J.A.R.V.I.S. // Simora xonim').replace(/"/g, '\\"');
+          const msg = ((payload.value && payload.value.message) || 'Yangi bildirishnoma').replace(/"/g, '\\"');
+          const psNotify = `
+            Add-Type -AssemblyName System.Windows.Forms;
+            $notify = New-Object System.Windows.Forms.NotifyIcon;
+            $notify.Icon = [System.Drawing.SystemIcons]::Information;
+            $notify.Visible = $true;
+            $notify.ShowBalloonTip(4000, "${title}", "${msg}", [System.Windows.Forms.ToolTipIcon]::Info);
+          `;
+          exec(`powershell -NoProfile -Command "${psNotify.replace(/\r?\n/g, ' ')}"`, () => {});
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: true, message: 'Xabarnoma yuborildi' }));
           return;
         }
 

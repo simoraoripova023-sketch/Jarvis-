@@ -1,4 +1,5 @@
 import { BatteryStatus } from '../types/neural';
+import { desktopBridge } from './DesktopBridgeService';
 
 class LaptopBatteryService {
   private status: BatteryStatus = {
@@ -11,6 +12,21 @@ class LaptopBatteryService {
 
   constructor() {
     this.init();
+    this.initBridgeSync();
+  }
+
+  private initBridgeSync() {
+    if (typeof window === 'undefined') return;
+    desktopBridge.subscribe((telemetry) => {
+      if (telemetry?.battery) {
+        this.status = {
+          level: telemetry.battery.levelPercent,
+          charging: telemetry.battery.isCharging,
+          supported: true
+        };
+        this.notify();
+      }
+    });
   }
 
   private async init() {
